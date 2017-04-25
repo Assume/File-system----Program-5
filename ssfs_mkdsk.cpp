@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 
-using namespace std;
+
 
 int main(int argc, char * argv[]){
 	// sanitize input => make sure input is what instructions specify
@@ -10,7 +10,7 @@ int main(int argc, char * argv[]){
 	// make sure argv[1], argv[2] are numbers
 	int num_blocks = 0;
 	int block_size = 0;
-	string disk_name;
+	std::string disk_name;
 	num_blocks = atoi(argv[1]);// 0 if argv is not a number
 	block_size = atoi(argv[2]);// 0 if argv is not a number
 	if(argc > 3){
@@ -21,7 +21,7 @@ int main(int argc, char * argv[]){
 	
 	//Create File
 
-	ofstream myfile;
+	std::ofstream myfile;
 	myfile.open ("filename.txt");               
 	myfile << "Writing this to a file.\n";
 	myfile << "000" << std::endl;            
