@@ -1,6 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <iterator>
+#include <vector>
+#include <sstream>
 
 
 int main(int argc, char * argv[]){
@@ -41,9 +44,8 @@ int main(int argc, char * argv[]){
   }
     
   
-  /*
-    Wait for commands from the user from command line.
- */
+  
+  //Wait for commands from the user from command line.
   while(true){
     std::string input;
     cin >> input;
@@ -51,17 +53,15 @@ int main(int argc, char * argv[]){
     if(input.compare(0, 7, "CREATE ") == 0 && input.size() > 7){
       create(input.substr(7, input.size()));
     } else if(input.compare(0, 7, "IMPORT ") == 0 && input.size() > 7){
-      import(input.substr(7, input.size()));
+      import(split_string_by_space(input));
     } else if(input.compare(0, 4, "CAT ") == 0 && input.size() > 4){
       cat(input.substr(4, input.size()));
     } else if(input.compare(0, 6, "WRITE ") == 0 && input.size() > 6){
-      /* NEED MORE HERE FOR FORMATTING FOR EXTRA INPUT */
-      write(input.substr(6, input.size()));
+	write(split_string_by_space(input));
     } else if(input.compare(0, 7, "DELETE ") == 0 && input.size() > 7){
       f_delete(input.substr(7, input.size()));
     } else if(input.compare(0, 5, "READ ") == 0 && input.size() > 5){
-      /* NEED MORE HERE FOR FORMATTING FOR EXTRA INPUT */
-      read(input.substr(5, input.size()));
+      read(split_string_by_space(input));
     } else if(input.compare(0, 4, "LIST") == 0){
       list_files();
     } else if(input.compare(0, 8, "SHUTDOWN") == 0){
@@ -82,20 +82,58 @@ bool all_disk_op_valid(std::string * disk_ops, int disk_op_array_size){
   return true;
 }
 
+std::vetor<std::string> split_string_by_space(std::string str){
+  std::istringstream buf(str);
+  std::istream_iterator<std::string> beg(buf), end;
+  std::vector<std::string> tokens(beg, end);
+
+  return tokens;
+}
 
 
+void write(std::vector<std::string> vec){
+  std::string command = vec[0];
+  std::string file_name = vec[1];
+  char char_to_write = vec[2].c_str()[0];
+  byte start_byte = vec[3].c_str()[0];
+  int num__bytes = std::atoi(vec[4]);
+
+}
+
+ 
+void read(std::vector<std::string> vec){
+  std::string ssfs_file_name = vec[1];
+  byte start_byte = vec[2].c_str()[0];
+  int num_bytes = std::atoi(vec[3]);
+  
+}
+
+ 
 void create(std::string file_name){
   
 
 }
 
 
-void import(std::string file_name){
+void import(std::vector<std::string> vec){
+  std::string ssfs_file_name = vec[0];
+  std::string unix_file_name = vec[1];
 
+  
 
 }
 
 void cat(std::string file_name){
+
+
+}
+
+void f_delete(std::string file_name){
+
+
+}
+
+void list_files(){
 
 
 }
