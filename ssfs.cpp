@@ -29,7 +29,7 @@ int main(int argc, char * argv[]){
   
   int num_disk_op_extra = argc - 2;
 
-  std::string * disk_op_threads = new std::string[num_disk_op_extra];
+  std::string disk_op_threads[num_disk_op_extra];
 
   for(int i = 0; i < num_disk_op_extra; i++)
     disk_op_threads[i] = argv[i+2];

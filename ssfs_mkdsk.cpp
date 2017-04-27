@@ -1,8 +1,7 @@
 #include <iostream>
-#include <fstream>
 #include <string>
-
-
+#include <stdio.h>
+#include <stdlib.h>     /* atoi */
 
 int main(int argc, char * argv[]){
 	// sanitize input => make sure input is what instructions specify
@@ -18,13 +17,29 @@ int main(int argc, char * argv[]){
 	} else {
 		disk_name = "DISK";
 	}
-	
+	if(num_blocks < 128 || num_blocks > 512 || block_size < 128 || block_size > 512){
+		perror("Block size has to be less than 512 bytes or greater than 128 bytes");
+	}
+	if(num_blocks * block_size < 1024 || num_blocks * block_size > 131072){
+		perror("Block size has to be less than 1024 bytes or greater than 131072 bytes (128KB)");
+	}
+	if((num_blocks & (num_blocks - 1) != 0 ) || (block_size & (block_size -1) != 0)){
+		perror("Block size and the number of blocks have to be a power of 2");
+	}
+
+
 	//Create File
 
-	std::ofstream myfile;
-	myfile.open ("filename.txt");               
-	myfile << "Writing this to a file.\n";
-	myfile << "000" << std::endl;            
-	myfile.close();
+	FILE * pFile;
+	pFile = fopen (disk_name.c_str(),"w");
+	if (pFile!=NULL)
+	{
+		fseek(pFile, num_blocks * block_size -1, 0);
+		char test_char = '\0';
+		fwrite(&test_char, 1, sizeof(test_char), pFile);
+		fclose (pFile);
+	} else {
+		perror("Unable to open file\n");
+	}
 	return 0;
 }
