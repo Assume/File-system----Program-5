@@ -38,9 +38,13 @@ int main(int argc, char * argv[]){
   
   num_disk_op_extra = argc - 2;
 
+<<<<<<< HEAD
   threads = new p_thread[num_disk_op_extra];
   
   disk_op_threads = new std::string[num_disk_op_extra];
+=======
+  std::string disk_op_threads[num_disk_op_extra];
+>>>>>>> 6de0eed2c3534bcc270b12167353c653da27aa3b
 
   for(int i = 0; i < num_disk_op_extra; i++)
     disk_op_threads[i] = argv[i+2];
