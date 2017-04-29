@@ -12,6 +12,9 @@ pthread_t  * threads;
 int num_disk_op_extra = 0;
 std::string * disk_op_threads;
 
+int * shared_mem_ptr;
+int shm_fd;
+
 int main(int argc, char * argv[]){
    // SANITIZE INPUT 1,2,3,4 text files and at least write seudocode for creating threads
 
@@ -38,13 +41,9 @@ int main(int argc, char * argv[]){
   
   num_disk_op_extra = argc - 2;
 
-<<<<<<< HEAD
   threads = new p_thread[num_disk_op_extra];
   
   disk_op_threads = new std::string[num_disk_op_extra];
-=======
-  std::string disk_op_threads[num_disk_op_extra];
->>>>>>> 6de0eed2c3534bcc270b12167353c653da27aa3b
 
   for(int i = 0; i < num_disk_op_extra; i++)
     disk_op_threads[i] = argv[i+2];
@@ -55,7 +54,14 @@ int main(int argc, char * argv[]){
     return -1;
   }
     
+  int pid_temp = getpid();
+
+  shm_fd = shm_open(name, O_CREAT | O_RDWR, 0666);
+  ftruncate(shm_fd, num_disk_op_extra * sizeof(int));
+  shared_mem_ptr = mmap(0, num_disk_op_extra * sizeof(int), PROT_WRITE, MAP_SHARED, shm_fd, 0);
+
   
+
   
   //Wait for commands from the user from command line.
   while(true){
