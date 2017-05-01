@@ -21,8 +21,9 @@ class super_block{
 		int num_blocks;
 		int db_ptr;
 		int inode_ptr;
+		int db_blocks;
 	public:
-		super_block(int, int, int, int);
+		super_block(int, int, int, int, int);
 };
 
 #endif

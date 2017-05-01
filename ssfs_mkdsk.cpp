@@ -29,25 +29,53 @@ int main(int argc, char * argv[]){
 	}
 
 	//CALCULATE ADDRESSES
-	int inode_start = ((sizeof(inode) * 256)/block_size) + 1;
+	int inode_start = 2 + ((sizeof(inode) * 256)/block_size) + 1;
+	int data_block_start = inode_start + 256;
+	int num_data_blocks = num_blocks - data_block_start;
+
+
+	//dummy values to write to disk
+	int inodes[256] = {0};
+	int db[num_data_blocks] = {0};
+	inode in;
 
 	//CREATE FILE
-
 	FILE * pFile;
 	pFile = fopen (disk_name.c_str(),"w");
 	if (pFile!=NULL)
 	{
+		//seek to the end of the file and writes a character so the file is the correct size
 		fseek(pFile, num_blocks * block_size - 1, 0);
 		char test_char = '\0';
 		fwrite(&test_char, 1, sizeof(test_char), pFile);
 		
-		super_block sb(block_size, num_blocks, 2 * block_size, 258 * block_size, num_dblks);
+		//creating superblock for file system
+		super_block sb(block_size, num_blocks, data_block_start, inode_start, num_data_blocks);
 
+		//seeks back to beginning of the file
 		fseek(pFile, 0, num_blocks * block_size - 1);
 		
-		printf("%d\n", sizeof(sb));
+		//write superblock byte by byte
+		fwrite(&sb, 1, sizeof(sb), pFile);
 
+		//seek to next block
+		fseek(pFile, block_size, 0);
 
+		//write inode bitmap to second block
+		fwrite(&inodes, 1, sizeof(inodes), pFile);
+
+		//seek to next block
+		fseek(pFile, block_size * 2, block_size);
+
+		//write data bitmap
+		fwrite(&db, 1, sizeof(db), pFile);
+
+		fseek(pFile, block_size * 3, block_size * 2);
+		for(int i = 0; i < 256; i++){
+			fwrite(&in, 1, sizeof(in), pFile);
+			//seek to the next inode spot not the next block
+			fseek(pFile, block_size * 3 + (sizeof(inode) * i + 1) , block_size * 3 + (sizeof(inode) * i));
+		}
 
 		fclose (pFile);
 	} else {
