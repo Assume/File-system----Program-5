@@ -1,10 +1,12 @@
-CC=g++
+CC = g++
+OBJS = ssfs_mkdsk.o disk.o
+EXEC = ssfs_mkdsk
 
-all: ssfs_mkdsk.o
-	g++ -o ssfs_mkdsk ssfs_mkdsk.o
+all: $(OBJS)
+	g++ -o $(EXEC) $(OBJS)
 
 %.o:%.cpp
 	$(CC) -c -g $^ 
 
 .PHONY clean:
-	rm -rf ssfs_mkdsk *.o
+	rm -rf $(EXEC) *.o
