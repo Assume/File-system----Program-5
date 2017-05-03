@@ -6,6 +6,7 @@
 class inode {
 
 	private:
+
 	  std::string file_name;
 	  int file_size;
 	  int db_ptr[12];
