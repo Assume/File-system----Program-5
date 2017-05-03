@@ -46,7 +46,7 @@ int main(int argc, char * argv[]){
 	//CREATE FILE
 	FILE * pFile;
 	pFile = fopen (disk_name.c_str(),"wb");
-	if (pFile!=NULL)
+	if (pFile != NULL)
 	{
 		//seek to the end of the file and writes a character so the file is the correct size
 		fseek(pFile, num_blocks * block_size - 1, 0);
@@ -54,20 +54,29 @@ int main(int argc, char * argv[]){
 		fwrite(&test_char, 1, sizeof(test_char), pFile);
 		
 		//creating superblock for file system
-		super_block * sb = new super_block(block_size, num_blocks, data_block_start, inode_start, num_data_blocks);
+		super_block sb(block_size, num_blocks, data_block_start, inode_start, num_data_blocks);
 
-		char * sb_arr = (char *) & sb;
+
+		char * sb_char = (char *) & sb;
 		
 		//seeks back to beginning of the file
 		fseek(pFile, (-1 * num_blocks * block_size), SEEK_END);
 		fclose(pFile);
 
-		std::ofstream out_stream(disk_name.c_str(), std::ofstream::binary);
-		
-		//write superblock byte by byte
-		out_stream.write(&sb_arr, sizeof(sb_arr));
 
+		std::ofstream out_stream;
+
+		out_stream.open(disk_name.c_str(), std::ios::binary | std::ofstream::out);
+		
+		out_stream.write(sb_char, sizeof(sb));
+
+		
+		
 		/*
+		//write superblock byte by byte
+		fwrite(&sb, 1, sizeof(sb), pFile);
+		
+		
 		//seek to next block
 		fseek(pFile, block_size, 0);
 
@@ -86,8 +95,9 @@ int main(int argc, char * argv[]){
 			//seek to the next inode spot not the next block
 			fseek(pFile, block_size * 3 + (sizeof(inode) * i + 1) , block_size * 3 + (sizeof(inode) * i));
 		}
-		*/
+		
 		fclose (pFile);
+		*/
 	} else {
 		perror("Unable to open file\n");
 	}
