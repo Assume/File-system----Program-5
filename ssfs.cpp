@@ -194,7 +194,10 @@ int main(int argc, char * argv[]){
 		assert(rc == 0);
 	}
 
-	
+	//disk manager thread waiting for disk op threads to post disk accesses
+	while(1){
+				
+	}
 
 	return 0;
 }
