@@ -7,13 +7,7 @@
 #include <cstdlib>
 #include <pthread.h>
 
-
-pthread_t  * threads;
-int num_disk_op_extra = 0;
-std::string * disk_op_threads;
-
-int * shared_mem_ptr;
-int shm_fd;
+#define SIZE 4096
 
 int main(int argc, char * argv[]){
 
@@ -54,15 +48,28 @@ int main(int argc, char * argv[]){
 		return -1;
 	}
 
-	int pid_temp = getpid();
+	int shm_fd = 0;
+	int * shm_ptr;
+	int rc = 0;
 
-	shm_fd = shm_open(name, O_CREAT | O_RDWR, 0666);
-	ftruncate(shm_fd, num_disk_op_extra * sizeof(int));
-	shared_mem_ptr = mmap(0, num_disk_op_extra * sizeof(int), PROT_WRITE, MAP_SHARED, shm_fd, 0);
+	// Create shared memory
+	shm_fd = shm_open("access", O_CREAT | O_RDWR, 0666);
 
+	ftruncate(shm_fd, SIZE);
 
+	shm_ptr = mmap(0, SIZE, PROT_WRITE, MAP_SHARED, shm_fd, 0); 
 
+	for(int i = 0; i < num_disk_op_extra; i++){
+		rc = pthread_create(threads[i], NULL, disk_op, disk_op_threads[i]); 	
+		assetrt(rc == 0);
+	}
 
+	
+
+	return 0;
+}
+
+void disk_op(){
 	//Wait for commands from the user from command line.
 	while(true){
 		std::string input;
@@ -86,8 +93,6 @@ int main(int argc, char * argv[]){
 			shutdown();
 		}
 	}
-
-	return 0;
 }
 
 bool all_disk_op_valid(std::string * disk_ops, int disk_op_array_size){
