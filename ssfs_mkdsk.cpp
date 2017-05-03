@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>     /* atoi */
 #include "disk.h"
+#include <fstream>
 
 int main(int argc, char * argv[]){
 	// sanitize input => make sure input is what instructions specify
@@ -19,13 +20,16 @@ int main(int argc, char * argv[]){
 		disk_name = "DISK";
 	}
 	if(block_size < 128 || block_size > 512){
-		perror("Block size has to be less than 512 bytes or greater than 128 bytes");
+		perror("Block size has to be less than or equal to 512 bytes or greater than or equal to 128 bytes");
+		return -1;
 	}
 	if(num_blocks < 1024 || num_blocks > 131072){
-		perror("Number of blocks has to be greater than 1024 bytes and less that 131072 bytes (128KB)");
+		perror("Number of blocks has to be greater than or equal to 1024 bytes and less than or equal to 131072 bytes (128KB)");
+		return -1;
 	}
 	if((num_blocks & (num_blocks - 1) != 0 ) || (block_size & (block_size -1) != 0)){
 		perror("Block size and the number of blocks have to be a power of 2");
+		return -1;
 	}
 
 	//CALCULATE ADDRESSES
@@ -41,7 +45,7 @@ int main(int argc, char * argv[]){
 
 	//CREATE FILE
 	FILE * pFile;
-	pFile = fopen (disk_name.c_str(),"w");
+	pFile = fopen (disk_name.c_str(),"wb");
 	if (pFile!=NULL)
 	{
 		//seek to the end of the file and writes a character so the file is the correct size
@@ -50,14 +54,20 @@ int main(int argc, char * argv[]){
 		fwrite(&test_char, 1, sizeof(test_char), pFile);
 		
 		//creating superblock for file system
-		super_block sb(block_size, num_blocks, data_block_start, inode_start, num_data_blocks);
+		super_block * sb = new super_block(block_size, num_blocks, data_block_start, inode_start, num_data_blocks);
 
+		char * sb_arr = (char *) & sb;
+		
 		//seeks back to beginning of the file
-		fseek(pFile, 0, num_blocks * block_size - 1);
+		fseek(pFile, (-1 * num_blocks * block_size), SEEK_END);
+		fclose(pFile);
+
+		std::ofstream out_stream(disk_name.c_str(), std::ofstream::binary);
 		
 		//write superblock byte by byte
-		fwrite(&sb, 1, sizeof(sb), pFile);
+		out_stream.write(&sb_arr, sizeof(sb_arr));
 
+		/*
 		//seek to next block
 		fseek(pFile, block_size, 0);
 
@@ -76,7 +86,7 @@ int main(int argc, char * argv[]){
 			//seek to the next inode spot not the next block
 			fseek(pFile, block_size * 3 + (sizeof(inode) * i + 1) , block_size * 3 + (sizeof(inode) * i));
 		}
-
+		*/
 		fclose (pFile);
 	} else {
 		perror("Unable to open file\n");
