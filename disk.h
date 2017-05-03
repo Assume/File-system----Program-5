@@ -8,9 +8,9 @@ class inode {
 	private:
 	  std::string file_name;
 	  int file_size;
-	  int db_ptr;
+	  int db_ptr[12];
 	  int ib_ptr;
-	  int dib_tr;
+	  int dib_ptr;
 
 };
 
