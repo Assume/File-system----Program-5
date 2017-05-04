@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+
+
 class inode {
 
 	private:
@@ -17,14 +19,29 @@ class inode {
 
 
 class super_block{
-	private:
+ public:
 		int block_size;
 		int num_blocks;
 		int db_ptr;
 		int inode_ptr;
 		int db_blocks;
-	public:
 		super_block(int, int, int, int, int);
 };
+
+
+struct file_data_holder {
+
+  super_block * s_block;
+
+  inode * inode_bitmap;
+
+  int * data_block;
+
+  inode ** all_inodes;
+
+};
+
+
+
 
 #endif
