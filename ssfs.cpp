@@ -5,30 +5,30 @@
 #include <vector>
 #include <sstream>
 #include <cstdlib>
+
 #include <pthread.h>
 #include <assert.h>
 #include <sys/mman.h>
-#include <fcntl.h>    /* For O_RDWR */
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include "disk.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include "operations.h"
 
+#include "disk.h"
+#include "operations.h"
 
 #define SIZE 4096
 
-
-
 void * disk_op(void * data){
+
 	std::string * str = static_cast<std::string*>(data);
+
 	//Wait for commands from the user from command line.
 	while(true){
-		std::cout << "Thread" << std::endl;
-		exit(0);
 		std::string input;
-		std::cin >> input;
+
+		/* OPEN THREAD FILE */
 
 		if(input.compare(0, 7, "CREATE ") == 0 && input.size() > 7){
 			std::cout << "C" <<  std::endl;
@@ -55,50 +55,10 @@ void * disk_op(void * data){
 			std::cout << "S" <<  std::endl;
 //			shutdown();
 		}
+
+		/* WAIT FOR A CONDITION VARIABLE */
 	}
 }
-
-bool all_disk_op_valid(std::string * disk_ops, int disk_op_array_size){
-	for(int i = 0; i < disk_op_array_size; i++){
-		std::ifstream temp_stream;
-		temp_stream.open(disk_ops[i].c_str());
-		if(!temp_stream.is_open())
-			return false;
-	}
-	return true;
-}
-
-std::vector<std::string> split_string_by_space(std::string str){
-	std::istringstream buf(str);
-	std::istream_iterator<std::string> beg(buf), end;
-	std::vector<std::string> tokens(beg, end);
-
-	return tokens;
-}
-
-
-void *handler_thread(std::string file_name){
-
-	std::ifstream file(file_name.c_str());
-
-	if(file.is_open())
-		std::cout << "File " << file_name << " opened successfully" << std::endl;
-	else
-		std::cout << "File " << file_name << " failed to open"<< std::endl;
-	file.close();
-
-}
-
-
-/*void create_threads(){
-	int response;
-	for(int i = 0; i < num_disk_op_extra; i++){
-		response = pthread_create(&threads[i], NULL, handler_thread, NULL);
-		if(response)
-			std::cout << "Failed to create thread " << response << "." << std::endl;
-	}
-}*/
-
 
 int main(int argc, char * argv[]){
 
@@ -125,9 +85,7 @@ int main(int argc, char * argv[]){
 	}
 
 	int num_disk_op_extra = argc - 2;
-
 	pthread_t threads[num_disk_op_extra];
-
 	std::string disk_op_threads[num_disk_op_extra];
 
 	for(int i = 0; i < num_disk_op_extra; i++){
@@ -146,9 +104,7 @@ int main(int argc, char * argv[]){
 
 	// Create shared memory
 	shm_fd = shm_open("access", O_CREAT | O_RDWR, 0666);
-
 	ftruncate(shm_fd, SIZE);
-
 	shm_ptr = mmap(0, SIZE, PROT_WRITE, MAP_SHARED, shm_fd, 0); 
 
 	for(int i = 0; i < num_disk_op_extra; i++){
@@ -156,9 +112,19 @@ int main(int argc, char * argv[]){
 		assert(rc == 0);
 	}
 
+	//if we read three "finished commands we will exit"
+	int finished = 0;
+
 	//disk manager thread waiting for disk op threads to post disk accesses
-	while(1){
-				
+	for(int i = 0; i < 3; i++){
+		/*
+		if("FINISHED".compare((char *)(shm_ptr))){
+			finished++;
+		} else {
+			disk_op()
+		}*/
+		std::cout << *((char *)shm_ptr)<< std::endl;
+		shm_ptr += sizeof((char *)shm_ptr);
 	}
 
 	return 0;

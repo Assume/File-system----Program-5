@@ -2,10 +2,6 @@
 #include <string>
 #include <vector>
 
-
-
-
-
 void operations::write(std::vector<std::string> vec){
   std::string command = vec[0];
   std::string file_name = vec[1];
@@ -15,8 +11,6 @@ void operations::write(std::vector<std::string> vec){
 
 }
 
-
-
 void operations::read(std::vector<std::string> vec){
   std::string ssfs_file_name = vec[1];
   char start_byte = vec[2].c_str()[0];
@@ -24,18 +18,18 @@ void operations::read(std::vector<std::string> vec){
 
 }
 
-
-void operations::create(std::string file_name){
-
-
+void create_threads(){
+	int response;
+	for(int i = 0; i < num_disk_op_extra; i++){
+		response = pthread_create(&threads[i], NULL, handler_thread, NULL);
+		if(response)
+			std::cout << "Failed to create thread " << response << "." << std::endl;
+	}
 }
-
 
 void operations::import(std::vector<std::string> vec){
   std::string ssfs_file_name = vec[0];
   std::string unix_file_name = vec[1];
-
-
 
 }
 
@@ -124,10 +118,34 @@ void operations::read_in_all_inodes(std::string file_name, &file_data_holder hol
   fclose(temp_file);
 }
 
+bool all_disk_op_valid(std::string * disk_ops, int disk_op_array_size){
+	for(int i = 0; i < disk_op_array_size; i++){
+		std::ifstream temp_stream;
+		temp_stream.open(disk_ops[i].c_str());
+		if(!temp_stream.is_open())
+			return false;
+	}
+	return true;
+}
 
+std::vector<std::string> split_string_by_space(std::string str){
+	std::istringstream buf(str);
+	std::istream_iterator<std::string> beg(buf), end;
+	std::vector<std::string> tokens(beg, end);
 
+	return tokens;
+}
 
+void *handler_thread(std::string file_name){
 
+	std::ifstream file(file_name.c_str());
 
+	if(file.is_open())
+		std::cout << "File " << file_name << " opened successfully" << std::endl;
+	else
+		std::cout << "File " << file_name << " failed to open"<< std::endl;
+	file.close();
+
+}
 
 
