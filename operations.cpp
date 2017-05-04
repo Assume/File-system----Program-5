@@ -1,76 +1,92 @@
-#include "operations.h"
+#include <iostream>
+#include <fstream>
 #include <string>
+#include <iterator>
 #include <vector>
+#include <sstream>
+#include <cstdlib>
 
-void operations::write(std::vector<std::string> vec){
+#include <pthread.h>
+#include <assert.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "disk.h"
+#include "operations.h"
+
+
+void write(std::vector<std::string> vec){
   std::string command = vec[0];
   std::string file_name = vec[1];
   char char_to_write = vec[2].c_str()[0];
   char start_byte = vec[3].c_str()[0];
   int num__bytes = std::atoi(vec[4].c_str());
 
+  
+
+
+
+  
 }
 
-void operations::read(std::vector<std::string> vec){
+void read(std::vector<std::string> vec){
   std::string ssfs_file_name = vec[1];
   char start_byte = vec[2].c_str()[0];
   int num_bytes = std::atoi(vec[3].c_str());
 
 }
 
-void create_threads(){
-	int response;
-	for(int i = 0; i < num_disk_op_extra; i++){
-		response = pthread_create(&threads[i], NULL, handler_thread, NULL);
-		if(response)
-			std::cout << "Failed to create thread " << response << "." << std::endl;
-	}
-}
-
-void operations::import(std::vector<std::string> vec){
+void import(std::vector<std::string> vec){
   std::string ssfs_file_name = vec[0];
   std::string unix_file_name = vec[1];
 
 }
 
-void operations::cat(std::string file_name){
+void cat(std::string file_name){
 
 
 }
 
-void operations::f_delete(std::string file_name){
+void f_delete(std::string file_name){
 
 
 }
 
-void operations::list_files(){
+void list_files(){
 
 
 }
 
 
-void operations::read_in_super_block(std::string file_name, &file_data_holder holder){
+void read_in_super_block(std::string file_name, file_data_holder & holder){
 
   FILE * temp_file;
 
   temp_file = fopen(file_name.c_str(), "rb");
 
-  char * super_b;
+  char * super_b = (char *) malloc(sizeof(super_block));
 
   fread(super_b, 1, sizeof(super_block), temp_file);
 
-  holder.s_block = (super_block *) super_b;
+  super_block * t_sb = (super_block *) super_b;
+
+  holder.s_block = t_sb;
+  
   fclose(temp_file);
 }
 
 
-void operations::read_in_inode_bitmap(std::string file_name, &file_data_holder holder){
+void read_in_inode_bitmap(std::string file_name, file_data_holder & holder){
 
   FILE * temp_file;
 
   temp_file = fopen(file_name.c_str(), "rb");
 
-  fseek(temp_file, s_block -> block_size, SEEK_SET);
+  fseek(temp_file, holder.s_block -> block_size, SEEK_SET);
 
   char * c_inode_bitmap;
 
@@ -81,13 +97,13 @@ void operations::read_in_inode_bitmap(std::string file_name, &file_data_holder h
 
 }
 
-void operations::read_in_data_bitmap(std::string file_name, &file_data_holder holder){
+void read_in_data_bitmap(std::string file_name, file_data_holder & holder){
 
   FILE * temp_file;
 
   temp_file = fopen(file_name.c_str(), "rb");
 
-  fseek(temp_file, s_block -> block_size * 2, SEEK_SET);
+  fseek(temp_file, holder.s_block -> block_size * 2, SEEK_SET);
 
   char * c_data_bitmap;
 
@@ -99,11 +115,11 @@ void operations::read_in_data_bitmap(std::string file_name, &file_data_holder ho
 }
 
 
-void operations::read_in_all_inodes(std::string file_name, &file_data_holder holder){
+void read_in_all_inodes(std::string file_name, file_data_holder & holder){
   FILE * temp_file;
 
   temp_file = fopen(file_name.c_str(), "rb");
-  fseek(temp_file, s_block -> block_size * 3, SEEK_SET);
+  fseek(temp_file, holder.s_block -> block_size * 3, SEEK_SET);
 
   char * c_inode;
 
@@ -112,7 +128,7 @@ void operations::read_in_all_inodes(std::string file_name, &file_data_holder hol
 
     holder.all_inodes[i] = (inode *) c_inode;
 
-    fseek(temp_file, s_block -> block_size * 3 + (sizeof(inode) * i + 1), SEEK_SET);
+    fseek(temp_file, holder.s_block -> block_size * 3 + (sizeof(inode) * i + 1), SEEK_SET);
   }
 
   fclose(temp_file);
@@ -147,5 +163,4 @@ void *handler_thread(std::string file_name){
 	file.close();
 
 }
-
 

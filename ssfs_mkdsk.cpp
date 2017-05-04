@@ -74,16 +74,16 @@ int main(int argc, char * argv[]){
 
 		//seek to next block -- possibly unnessecary due to write seeking num bytes written
 		//but depends on the size of what was written
-		fseek(pFile, block_size * 2, SEEK_SET);
+		fseek(pFile, block_size * 2 + sizeof(inodes), SEEK_SET);
 
 		//write data bitmap
 		fwrite(&db, 1, sizeof(db), pFile);
 
-		fseek(pFile, block_size * 3, SEEK_SET);
+		fseek(pFile, block_size * 3 + sizeof(inodes), SEEK_SET);
 		for(int i = 0; i < 256; i++){
 			fwrite(&in, 1, sizeof(in), pFile);
 			//seek to the next inode spot not the next block
-			fseek(pFile, block size * 3 + (sizeof(inode) * i + 1), SEEK_SET);
+			fseek(pFile, block_size * 3 + sizeof(inodes) + (sizeof(inode) * i + 1), SEEK_SET);
 		}
 		
 		fclose (pFile);

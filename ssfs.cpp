@@ -93,7 +93,7 @@ int main(int argc, char * argv[]){
 	}
 
 	//Verify that all passed disk op names are valid
-	if(!all_disk_op_valid(disk_op_threads, num_disk_op_extra)){
+	if(!operations::all_disk_op_valid(disk_op_threads, num_disk_op_extra)){
 		perror("One or more disk op file names are invalid. Exiting.");
 		return -1;
 	}
@@ -123,7 +123,7 @@ int main(int argc, char * argv[]){
 		} else {
 			disk_op()
 		}*/
-		std::cout << *((char *)shm_ptr)<< std::endl;
+		std::cout << *((char *)shm_ptr) << std::endl;
 		shm_ptr += sizeof((char *)shm_ptr);
 	}
 

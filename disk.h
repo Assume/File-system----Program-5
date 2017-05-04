@@ -35,7 +35,7 @@ struct file_data_holder {
 
   inode * inode_bitmap;
 
-  int * data_block;
+  int * data_bitmap;
 
   inode ** all_inodes;
 

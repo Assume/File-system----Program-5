@@ -2,11 +2,16 @@
 #define OPERATIONS_H
 
 #include "disk.h"
+#include <vector>
 
-void read_in_super_block(std::string file_name, &file_data_holder holder);
-void read_in_inode_bitmap(std::string file_name, &file_data_holder holder);
-void read_in_data_bitmap(std::string file_name, &file_data_holder holder);
-void read_in_all_inodes(std::string file_name, &file_data_holder holder);
+
+void read_in_super_block(std::string file_name, file_data_holder & holder);
+void read_in_inode_bitmap(std::string file_name, file_data_holder & holder);
+void read_in_data_bitmap(std::string file_name, file_data_holder  & holder);
+void read_in_all_inodes(std::string file_name, file_data_holder & holder);
+
+static bool all_disk_op_valid(std::string * disk_ops, int disk_op_array_size);
+
 void write(std::vector<std::string> vec);
 void read(std::vector<std::string> vec);
 void create(std::string file_name);
