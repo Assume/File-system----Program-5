@@ -11,8 +11,20 @@
 #include <fcntl.h>    /* For O_RDWR */
 #include <unistd.h>
 #include <sys/types.h>
+#include "disk.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 #define SIZE 4096
+
+
+super_block * s_block;
+
+inode * inode_bitmap;
+
+int * data_block;
+
+inode ** all_inodes;
 
 void * disk_op(void * data){
 	std::string * str = static_cast<std::string*>(data);
@@ -77,6 +89,8 @@ void write(std::vector<std::string> vec){
 	char start_byte = vec[3].c_str()[0];
 	int num__bytes = std::atoi(vec[4].c_str());
 
+	
+	
 }
 
 
@@ -129,6 +143,75 @@ void *handler_thread(std::string file_name){
 
 }
 
+void read_in_super_block(std::string file_name){
+
+   FILE * temp_file;
+
+   temp_file = fopen(file_name.c_str(), "rb");
+
+   char * super_b;
+
+   fread(super_b, 1, sizeof(super_block), temp_file);
+
+   s_block = (super_block *) super_b;
+   fclose(temp_file);
+}
+
+
+void read_in_inode_bitmap(std::string file_name){
+
+  FILE * temp_file;
+
+  temp_file = fopen(file_name.c_str(), "rb");
+
+  fseek(temp_file, s_block -> block_size, SEEK_SET);
+
+  char * c_inode_bitmap;
+
+  fread(c_inode_bitmap, 1, sizeof(inode), temp_file);
+
+  inode_bitmap = (inode *) c_inode_bitmap;
+  fclose(temp_file);
+
+}
+
+void read_in_data_bitmap(std::string file_name){
+
+  FILE * temp_file;
+
+  temp_file = fopen(file_name.c_str(), "rb");
+
+  fseek(temp_file, s_block -> block_size * 2, SEEK_SET);
+
+  char * c_data_bitmap;
+
+  fread(c_data_bitmap, 1, sizeof(inode), temp_file);
+
+  data_bitmap = (int *) c_data_bitmap;
+  fclose(temp_file);
+
+}
+
+
+void read_in_all_inodes(std::string file_name){
+  FILE * temp_file;
+
+  temp_file = fopen(file_name.c_str(), "rb");
+  fseek(temp_file, s_block -> block_size * 3, SEEK_SET);
+
+  char * c_inode;
+
+  for(int i = 0; i < 256; i++){
+    fread(c_inode, 1, sizeof(inode), temp_file);
+    
+    all_inodes[i] = (inode *) c_inode;
+
+    fseek(temp_file, s_block -> block_size * 3 + (sizeof(inode) * i + 1), SEEK_SET);
+  }
+
+  fclose(temp_file);
+}
+
 /*void create_threads(){
 	int response;
 	for(int i = 0; i < num_disk_op_extra; i++){
@@ -137,6 +220,7 @@ void *handler_thread(std::string file_name){
 			std::cout << "Failed to create thread " << response << "." << std::endl;
 	}
 }*/
+
 
 int main(int argc, char * argv[]){
 
