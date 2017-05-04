@@ -61,43 +61,33 @@ int main(int argc, char * argv[]){
 		
 		//seeks back to beginning of the file
 		fseek(pFile, (-1 * num_blocks * block_size), SEEK_END);
-		fclose(pFile);
-
-
-		std::ofstream out_stream;
-
-		out_stream.open(disk_name.c_str(), std::ios::binary | std::ofstream::out);
 		
-		out_stream.write(sb_char, sizeof(sb));
-
-		
-		
-		/*
 		//write superblock byte by byte
 		fwrite(&sb, 1, sizeof(sb), pFile);
 		
 		
-		//seek to next block
-		fseek(pFile, block_size, 0);
+		//seek to next block after super block
+		fseek(pFile, block_size, SEEK_SET);
 
 		//write inode bitmap to second block
 		fwrite(&inodes, 1, sizeof(inodes), pFile);
 
-		//seek to next block
-		fseek(pFile, block_size * 2, block_size);
+		//seek to next block -- possibly unnessecary due to write seeking num bytes written
+		//but depends on the size of what was written
+		fseek(pFile, block_size * 2, SEEK_SET);
 
 		//write data bitmap
 		fwrite(&db, 1, sizeof(db), pFile);
 
-		fseek(pFile, block_size * 3, block_size * 2);
+		fseek(pFile, block_size * 3, SEEK_SET);
 		for(int i = 0; i < 256; i++){
 			fwrite(&in, 1, sizeof(in), pFile);
 			//seek to the next inode spot not the next block
-			fseek(pFile, block_size * 3 + (sizeof(inode) * i + 1) , block_size * 3 + (sizeof(inode) * i));
+			fseek(pFile, block size * 3 + (sizeof(inode) * i + 1), SEEK_SET);
 		}
 		
 		fclose (pFile);
-		*/
+	       
 	} else {
 		perror("Unable to open file\n");
 	}
