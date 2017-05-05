@@ -83,20 +83,20 @@ bool cat(file_data_holder & holder, message & ms){
 	char * data_read_in = (char *) malloc(total_file_size);
 
 	for(int i = 0; i < total_blocks_to_read; i++){
-		char * r_block = (char *) malloc(holder.s_block.block_size);
+		char * r_block = (char *) malloc(holder.s_block -> block_size);
 		FILE * t_file;
 		t_file = fopen(holder.disk_name, "rb");
-		fseek(t_file, get_starting_offset(holder) + ((holder.all_inodes[i].db[i] - 1) * holder.s_block.block_size), SEEK_SET);
+		fseek(t_file, get_starting_offset(holder) + ((holder.all_inodes[i].db[i] - 1) * holder.s_block -> block_size), SEEK_SET);
 
 		if(i + 1 == total_blocks_to_read){
 			fread(r_block, 1, total_file_size - total_read, t_file);
 		} else {
-			fread(r_block, 1, holder.s_block.block_size, t_file);
+			fread(r_block, 1, holder.s_block -> block_size, t_file);
 		}
-		for(int j = 0; j < i + 1 == total_blocks_to_read ? total_file_size - total_read : holder.s_block.block_size; j++){
-			data_read_in[(i * holder.s_block.block_size) + j] = r_block[j];
+		for(int j = 0; j < i + 1 == total_blocks_to_read ? total_file_size - total_read : holder.s_block -> block_size; j++){
+			data_read_in[(i * holder.s_block -> block_size) + j] = r_block[j];
 		}
-		total_read += holder.s_block.block_size;
+		total_read += holder.s_block -> block_size;
 
 
 		fclose(t_file);
