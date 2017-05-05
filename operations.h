@@ -24,6 +24,7 @@ void list_files(file_data_holder &);
 int get_starting_offset(file_data_holder);
 int get_free_data_block(file_data_holder);
 int get_free_inode(file_data_holder);
+int get_inode_for_file_name(filde_data_holder, char * f_name);
 
 //shared memory
 int add_shared_to(message &, void *);
