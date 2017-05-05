@@ -28,7 +28,7 @@ bool does_file_exist(file_data_holder fh, std::string f_name){
 	return false;
 }
 
-/*bool write(file_data_holder & holder, message & ms){
+bool write(file_data_holder & holder, message & ms){
 
 	int index = get_inode_for_file_name(holder, ms.fname);
 
@@ -37,20 +37,20 @@ bool does_file_exist(file_data_holder fh, std::string f_name){
 		return false;
 	}
 
-	if(ms.start > holder.all_inodes[i].file_size){
+	if(ms.start > holder.all_inodes[index].file_size){
 		perror("Start byte passed in write is greater than total bytes in file");
 		return false;
 	}
 
-	if((holder.all_inodes[index].get_unused_data_block * holder.s_block.block_size) + (ms.start + ms.bytes) > (12 * holder.s_block.block_size)){
+	if(((holder.all_inodes[index].get_unused_data_block() * (holder.s_block -> block_size)) + (ms.start + ms.bytes)) > (12 * holder.s_block -> block_size)){
 		perror("Not enough blocks free to complete write");
 		return false;
 	}
 
-	int start_block = holder.all_inodes[index].file_size / holder.s_block.block_size;
+	int start_block = holder.all_inodes[index].file_size / holder.s_block -> block_size;
 
 
-}*/
+}
 
 bool read(std::vector<std::string> vec){
 
