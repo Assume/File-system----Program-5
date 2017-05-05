@@ -20,6 +20,8 @@ bool import(std::vector<std::string>);
 bool cat(std::string);
 bool delete_file(file_data_holder &, std::string);
 void list_files(file_data_holder &);
+void shutdown(file_data_holder &);
+
 
 int get_starting_offset(file_data_holder);
 int get_free_data_block(file_data_holder);

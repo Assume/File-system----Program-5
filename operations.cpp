@@ -282,6 +282,63 @@ bool create(file_data_holder &fh, std::string f_name){
 
 }
 
+void shutdown(file_data_holder & holder){
+  FILE * t_file;
+  t_file = fopen (holder.disk_name, "rb");
+  
+  inode real_inodes[256];
+
+  int inode_bitmap[256];
+
+  int data_bitmap[holder.s_block -> db_blocks];
+
+  super_block sb(holder.s_block -> block_size, holder.s_block -> num_blocks, holder.s_block -> db_ptr, holder.s_block -> inode_ptr, holder.s_block -> db_blocks);
+
+  for(int i = 0; i < 256; i++){
+    inode_bitmap[i] = holder.inode_bitmap[i];
+    real_inodes[i] = holder.all_inodes[i];
+  }
+
+  for(int i = 0; i < holder.s_block -> db_blocks; i++)
+    data_bitmap[i] = holder.data_bitmap[i];
+
+
+  if (t_file != NULL){
+    
+      //seek to the end of the file and writes a character so the file is the correct size
+      fseek(t_file, sb.num_blocks * sb.block_size - 1, 0);
+      char test_char = '\0';
+      fwrite(&test_char, 1, sizeof(test_char), t_file);
+
+      //seeks back to beginning of the file
+      fseek(t_file, (-1 * sb.num_blocks * sb.block_size), SEEK_END);
+
+      //write superblock byte by byte
+      fwrite(&sb, 1, sizeof(sb), t_file);
+
+
+      //seek to next block after super block
+      fseek(t_file, sb.block_size, SEEK_SET);
+
+      //write inode bitmap to second block
+      fwrite(&inode_bitmap, 1, sizeof(inode_bitmap), t_file);
+
+      //seek to next block -- possibly unnessecary due to write seeking num bytes written
+      //but depends on the size of what was written
+      fseek(t_file, sb.block_size + sizeof(inode_bitmap), SEEK_SET);
+
+      //write data bitmap
+      fwrite(&data_bitmap, 1, sizeof(data_bitmap), t_file);
+
+      fseek(t_file, sb.block_size + sizeof(inode_bitmap) + sizeof(data_bitmap), SEEK_SET);
+
+      fwrite(&real_inodes, 1, sizeof(real_inodes), t_file);
+
+      fclose (t_file);
+  }
+}
+
+
 /*
 int add_shared_to(message & mes, void * ptr){
 

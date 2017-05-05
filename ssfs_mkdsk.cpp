@@ -72,8 +72,7 @@ int main(int argc, char * argv[]){
 		//creating superblock for file system
 		super_block sb(block_size, num_blocks, data_block_start, inode_start, num_data_blocks);
 
-
-		char * sb_char = (char *) & sb;
+		char * sb_char = (char *) &sb;
 		
 		//seeks back to beginning of the file
 		fseek(pFile, (-1 * num_blocks * block_size), SEEK_END);
