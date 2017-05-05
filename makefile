@@ -11,7 +11,7 @@ all: $(OBJS1)
 	$(CC) -o $(EXEC1) $(OBJS1) $(LIBS)
 
 ssfs: $(OBJS1)
-	$(CC) -o $(EXEC1) $(OBJS1)
+	$(CC) -o $(EXEC1) $(OBJS1) $(LIBS)
 
 disk: $(OBJS)
 	$(CC) -o $(EXEC) $(OBJS)
