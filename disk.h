@@ -13,7 +13,7 @@ struct message {
 };
 
 class inode {
-
+ public:
 	  std::string file_name;
 	  int file_size;
 	  int db_ptr[12];
@@ -36,9 +36,9 @@ class super_block{
 struct file_data_holder {
 
   super_block * s_block;
-  inode * inode_bitmap;
+  int * inode_bitmap;
   int * data_bitmap;
-  inode ** all_inodes;
+  inode* all_inodes[256];
 
 };
 

@@ -88,11 +88,11 @@ void read_in_inode_bitmap(std::string file_name, file_data_holder & holder){
 
   fseek(temp_file, holder.s_block -> block_size, SEEK_SET);
 
-  char * c_inode_bitmap;
+  char * c_inode_bitmap = (char *) malloc(sizeof(int) * 256);
 
-  fread(c_inode_bitmap, 1, sizeof(inode), temp_file);
+  fread(c_inode_bitmap, 1, sizeof(int) * 256, temp_file);
 
-  holder.inode_bitmap = (inode *) c_inode_bitmap;
+  holder.inode_bitmap = (int *) c_inode_bitmap;
   fclose(temp_file);
 
 }
@@ -103,13 +103,14 @@ void read_in_data_bitmap(std::string file_name, file_data_holder & holder){
 
   temp_file = fopen(file_name.c_str(), "rb");
 
-  fseek(temp_file, holder.s_block -> block_size * 2, SEEK_SET);
+  fseek(temp_file, holder.s_block -> block_size + (sizeof(int) * 256), SEEK_SET);
 
-  char * c_data_bitmap;
+  char * c_data_bitmap = (char *) malloc(sizeof(int) * holder.s_block -> num_blocks);
 
-  fread(c_data_bitmap, 1, sizeof(inode), temp_file);
+  fread(c_data_bitmap, 1, sizeof(int) * holder.s_block -> num_blocks, temp_file);
 
   holder.data_bitmap = (int *) c_data_bitmap;
+  
   fclose(temp_file);
 
 }
@@ -119,16 +120,16 @@ void read_in_all_inodes(std::string file_name, file_data_holder & holder){
   FILE * temp_file;
 
   temp_file = fopen(file_name.c_str(), "rb");
-  fseek(temp_file, holder.s_block -> block_size * 3, SEEK_SET);
+  fseek(temp_file, holder.s_block -> block_size + (sizeof(inode) * 256) + (sizeof(int) * holder.s_block -> num_blocks), SEEK_SET);
 
-  char * c_inode;
+  char * c_inode = (char *) malloc(sizeof(inode));
 
   for(int i = 0; i < 256; i++){
     fread(c_inode, 1, sizeof(inode), temp_file);
 
     holder.all_inodes[i] = (inode *) c_inode;
-
-    fseek(temp_file, holder.s_block -> block_size * 3 + (sizeof(inode) * i + 1), SEEK_SET);
+    
+    fseek(temp_file, holder.s_block -> block_size + (sizeof(inode) * 256) + (sizeof(int) * holder.s_block -> num_blocks) + (sizeof(inode) * i + 1), SEEK_SET);
   }
 
   fclose(temp_file);

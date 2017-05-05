@@ -4,6 +4,8 @@
 #include <stdlib.h>     /* atoi */
 #include "disk.h"
 #include <fstream>
+#include <math.h>
+#include <time.h>
 
 int main(int argc, char * argv[]){
 	// sanitize input => make sure input is what instructions specify
@@ -39,9 +41,20 @@ int main(int argc, char * argv[]){
 
 
 	//dummy values to write to disk
-	int inodes[256] = {0};
-	int db[num_data_blocks] = {0};
+	
+	int inodes[256];
+	srand (time(NULL));
+	for(int i = 0; i < 256; i++)
+	  inodes[i] = rand() % 2;
+	int db[num_data_blocks];
+
+	for(int i = 0; i < num_data_blocks; i++)
+	  db[i] = rand() % 2;
+	
 	inode in;
+
+	in.file_name =  "tester";
+	in.dib_ptr = 18;
 
 	//CREATE FILE
 	FILE * pFile;
@@ -74,16 +87,16 @@ int main(int argc, char * argv[]){
 
 		//seek to next block -- possibly unnessecary due to write seeking num bytes written
 		//but depends on the size of what was written
-		fseek(pFile, block_size * 2 + sizeof(inodes), SEEK_SET);
+		fseek(pFile, block_size + sizeof(inodes), SEEK_SET);
 
 		//write data bitmap
 		fwrite(&db, 1, sizeof(db), pFile);
-
-		fseek(pFile, block_size * 3 + sizeof(inodes), SEEK_SET);
+		
+		fseek(pFile, block_size + sizeof(inodes) + sizeof(db), SEEK_SET);
 		for(int i = 0; i < 256; i++){
 			fwrite(&in, 1, sizeof(in), pFile);
 			//seek to the next inode spot not the next block
-			fseek(pFile, block_size * 3 + sizeof(inodes) + (sizeof(inode) * i + 1), SEEK_SET);
+			fseek(pFile, block_size + sizeof(inodes) + sizeof(db) + (sizeof(inode) * i + 1), SEEK_SET);
 		}
 		
 		fclose (pFile);
