@@ -20,6 +20,6 @@ void import(std::vector<std::string>);
 void cat(std::string);
 void f_delete(std::string);
 void list_files();
-
+int get_starting_offset(file_data_holder &);
 
 #endif

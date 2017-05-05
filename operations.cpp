@@ -142,3 +142,8 @@ void *handler_thread(std::string file_name){
 
 }
 
+int get_starting_offset(file_data_holder & holder){
+  
+  return holder.s_block -> block_size + (sizeof(int) * 256) + (sizeof(int) * holder.s_block -> db_blocks) + (sizeof(inode) * 256);
+
+}
