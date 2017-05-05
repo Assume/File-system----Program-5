@@ -45,14 +45,15 @@ int main(int argc, char * argv[]){
 	int inodes[256];
 	srand(time(NULL));
 	for(int i = 0; i < 256; i++)
-	  inodes[i] = rand() % 2;
+	  inodes[i] = 0;
 	int db[num_data_blocks];
 
 	for(int i = 0; i < num_data_blocks; i++)
-	  db[i] = rand() % 2;
+	  db[i] = 0;
 	
 	inode in;
 
+<<<<<<< HEAD
 	in.file_name[0] = 't';
 	in.file_name[1] = 'e';
 	in.file_name[2] = 's';
@@ -61,6 +62,8 @@ int main(int argc, char * argv[]){
 	
 	in.dib_ptr = 20;
 
+=======
+>>>>>>> f2c223dd0c8db89586a1fbf4c6b76d72c23eaf29
 	inode real_inodes[256];
 
 	for(int i = 0; i < 256; i++)
