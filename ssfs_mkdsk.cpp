@@ -55,7 +55,11 @@ int main(int argc, char * argv[]){
 	inode in;
 
 
-	char t_char[] = { 't', 'e', 's', 't', '\0'};
+	in.file_name[0] = 't';
+	in.file_name[1] = 'e';
+	in.file_name[2] = 's';
+	in.file_name[3] = 't';
+	in.file_name[4] = '\0';
 	
 	in.file_name = t_char;
 	in.dib_ptr = 20;

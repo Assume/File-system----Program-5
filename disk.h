@@ -7,7 +7,7 @@
 class inode {
 
  public:
-	  char * file_name;
+	  char file_name[33];
 	  int file_size;
 	  int db_ptr[12];
 	  int ib_ptr;
