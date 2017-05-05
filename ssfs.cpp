@@ -1,19 +1,20 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <iterator>
 #include <vector>
-#include <sstream>
 #include <cstdlib>
 
-#include <pthread.h>
-#include <assert.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <pthread.h>
+#include <assert.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/types.h>
 
 #include "disk.h"
 #include "operations.h"
@@ -23,44 +24,51 @@
 void * disk_op(void * data){
 
 	std::string * str = static_cast<std::string*>(data);
-	FILE * pFile;
-	char input[255];
+	std::ifstream p_file((*str).c_str());
+	std::string input;
 
-	//Wait for commands from the user from command line.
-	while(fscanf(fp, "%s", input)){
-		
-		pFile = fopen((*str).c_str(),"r");
+	std::cout << "filename: " << std::endl;
 
-		std::cout << input << std::endl;
+	/*
+	if(p_file.is_open()){
 
-		if(input.compare(0, 7, "CREATE ") == 0 && input.size() > 7){
-			std::cout << "C" <<  std::endl;
-//			create(input.substr(7, input.size()));
-		} else if(input.compare(0, 7, "IMPORT ") == 0 && input.size() > 7){
-			std::cout << "I" <<  std::endl;
-//			import(split_string_by_space(input));
-		} else if(input.compare(0, 4, "CAT ") == 0 && input.size() > 4){
-			std::cout << "C" <<  std::endl;
-//			cat(input.substr(4, input.size()));
-		} else if(input.compare(0, 6, "WRITE ") == 0 && input.size() > 6){
-			std::cout << "W" <<  std::endl;
-//			write(split_string_by_space(input));
-		} else if(input.compare(0, 7, "DELETE ") == 0 && input.size() > 7){
-			std::cout << "D" <<  std::endl;
-//			f_delete(input.substr(7, input.size()));
-		} else if(input.compare(0, 5, "READ ") == 0 && input.size() > 5){
-			std::cout << "R" <<  std::endl;
-//			read(split_string_by_space(input));
-		} else if(input.compare(0, 4, "LIST") == 0){
-			std::cout << "L" <<  std::endl;
-//			list_files();
-		} else if(input.compare(0, 8, "SHUTDOWN") == 0){
-			std::cout << "S" <<  std::endl;
-//			shutdown();
+		//Wait for commands from the user from command line.
+		while(getline(p_file, input)){
+			
+			std::cout << input << std::endl;
+
+			if(strcmp(input.substr(0, 7).c_str(), "CREATE ") == 0 && input.size() > 7){
+				std::cout << "C" <<  std::endl;
+	//			create(input.substr(7, input.size()));
+			} else if(strcmp(input.substr(0, 7).c_str(), "IMPORT ") == 0 && input.size() > 7){
+				std::cout << "I" <<  std::endl;
+	//			import(split_string_by_space(input));
+			} else if(strcmp(input.substr(0, 4).c_str(), "CAT ") == 0 && input.size() > 4){
+				std::cout << "C" <<  std::endl;
+	//			cat(input.substr(4, input.size()));
+			} else if(strcmp(input.substr(0, 6).c_str(), "WRITE ") == 0 && input.size() > 6){
+				std::cout << "W" <<  std::endl;
+	//			write(split_string_by_space(input));
+			} else if(strcmp(input.substr(0, 7).c_str(), "DELETE ") == 0 && input.size() > 7){
+				std::cout << "D" <<  std::endl;
+	//			f_delete(input.substr(7, input.size()));
+			} else if(strcmp(input.substr(0, 5).c_str(), "READ ") == 0 && input.size() > 5){
+				std::cout << "R" <<  std::endl;
+	//			read(split_string_by_space(input));
+			} else if(strcmp(input.substr(0, 4).c_str(), "LIST") == 0){
+				std::cout << "L" <<  std::endl;
+	//			list_files();
+			} else if(strcmp(input.substr(0, 8).c_str(), "SHUTDOWN") == 0){
+				std::cout << "S" <<  std::endl;
+	//			shutdown();
+			}
+
+			//WAIT FOR A CONDITION VARIABLE
 		}
-
-		/* WAIT FOR A CONDITION VARIABLE */
+	} else {
+		perror("thread text file is not available");
 	}
+	*/
 }
 
 int main(int argc, char * argv[]){
@@ -96,7 +104,7 @@ int main(int argc, char * argv[]){
 	}
 
 	//Verify that all passed disk op names are valid
-	if(!operations::all_disk_op_valid(disk_op_threads, num_disk_op_extra)){
+	if(!all_disk_op_valid(disk_op_threads, num_disk_op_extra)){
 		perror("One or more disk op file names are invalid. Exiting.");
 		return -1;
 	}
@@ -119,15 +127,17 @@ int main(int argc, char * argv[]){
 	int finished = 0;
 
 	//disk manager thread waiting for disk op threads to post disk accesses
-	for(int i = 0; i < 3; i++){
+	while(1){
 		/*
 		if("FINISHED".compare((char *)(shm_ptr))){
 			finished++;
 		} else {
 			disk_op()
 		}*/
-		std::cout << *((char *)shm_ptr) << std::endl;
-		shm_ptr += sizeof((char *)shm_ptr);
+		if(sizeof(*((char *)shm_ptr)) != 0){
+			std::cout << sizeof((*(char *)shm_ptr)) << std::endl;
+		}
+		//shm_ptr += sizeof((char *)shm_ptr);
 	}
 
 	return 0;

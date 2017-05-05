@@ -4,20 +4,21 @@
 #include "disk.h"
 #include <vector>
 
+//reading data structures from the disk
+void read_in_super_block(std::string, file_data_holder &);
+void read_in_inode_bitmap(std::string, file_data_holder &);
+void read_in_data_bitmap(std::string, file_data_holder  &);
+void read_in_all_inodes(std::string, file_data_holder &);
 
-void read_in_super_block(std::string file_name, file_data_holder & holder);
-void read_in_inode_bitmap(std::string file_name, file_data_holder & holder);
-void read_in_data_bitmap(std::string file_name, file_data_holder  & holder);
-void read_in_all_inodes(std::string file_name, file_data_holder & holder);
+bool all_disk_op_valid(std::string *, int);
 
-static bool all_disk_op_valid(std::string * disk_ops, int disk_op_array_size);
-
-void write(std::vector<std::string> vec);
-void read(std::vector<std::string> vec);
+//commands on disk
+void write(std::vector<std::string>);
+void read(std::vector<std::string>);
 void create(std::string file_name);
-void import(std::vector<std::string> vec);
-void cat(std::string file_name);
-void f_delete(std::string file_name);
+void import(std::vector<std::string>);
+void cat(std::string);
+void f_delete(std::string);
 void list_files();
 
 #endif

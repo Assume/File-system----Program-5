@@ -1,6 +1,6 @@
 CC = g++
-OBJS = ssfs_mkdsk.o disk.o
-OBJS1 = ssfs.o disk.o
+OBJS = ssfs_mkdsk.o disk.o operations.o
+OBJS1 = ssfs.o disk.o operations.o
 EXEC = ssfs_mkdsk
 EXEC1 = ssfs
 LIBS = -pthread -lrt
@@ -18,4 +18,4 @@ ssfs_mkdsk: $(OBJS)
 	$(CC) -c -g -lstdc++ $^ 
 
 .PHONY clean:
-	rm -rf $(EXEC) $(EXEC1) *.o
+	rm -rf $(EXEC) $(EXEC1) *.o DISK

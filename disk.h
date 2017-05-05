@@ -3,16 +3,9 @@
 
 #include <iostream>
 
-struct message {
-
-	char * cmd;
-	char * name;
-	int start;
-	int bytes;
-	char letter;
-};
-
+//inode on disk
 class inode {
+
  public:
 	  std::string file_name;
 	  int file_size;
@@ -22,6 +15,7 @@ class inode {
 
 };
 
+//superblock on disk
 class super_block{
 
  	public:
@@ -33,6 +27,7 @@ class super_block{
 		super_block(int, int, int, int, int);
 };
 
+//data read from disk
 struct file_data_holder {
 
   super_block * s_block;
@@ -40,6 +35,16 @@ struct file_data_holder {
   int * data_bitmap;
   inode* all_inodes[256];
 
+};
+
+//message passed to disk_handler
+struct message {
+
+	char * cmd;
+	char * name;
+	int start;
+	int bytes;
+	char letter;
 };
 
 #endif
