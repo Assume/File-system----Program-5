@@ -28,7 +28,7 @@ bool does_file_exist(file_data_holder fh, std::string f_name){
 	return false;
 }
 
-bool write(file_data_holder & holder, message & ms){
+/*bool write(file_data_holder & holder, message & ms){
 
 	int index = get_inode_for_file_name(holder, ms.fname);
 
@@ -50,7 +50,7 @@ bool write(file_data_holder & holder, message & ms){
 	int start_block = holder.all_inodes[index].file_size / holder.s_block.block_size;
 
 
-}
+}*/
 
 bool read(std::vector<std::string> vec){
 
@@ -66,7 +66,7 @@ bool import(std::vector<std::string> vec){
 
 }
 
-bool cat(file_data_holder & holder, message & ms){
+/*bool cat(file_data_holder & holder, message & ms){
 
 	int index = get_inode_for_file_name(holder, ms.fname);
 
@@ -104,12 +104,12 @@ bool cat(file_data_holder & holder, message & ms){
 	}
 	std::cout << data_read_in << std::endl;
 	return true;
-}
+}*/
 
 void unlink(file_data_holder & holder, inode &in){
 	int i = 0;
-	while(in.db_blocks[i] != -1){
-		holder.data_bitmap[in.db_blocks[i]] = 0;
+	while(in.db_ptr[i] != -1){
+		holder.data_bitmap[in.db_ptr[i]] = 0;
 		i++;
 	}
 	
