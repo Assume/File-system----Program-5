@@ -3,11 +3,16 @@
 
 #include <iostream>
 
+struct message {
 
+	char * cmd;
+	char * name;
+	int start;
+	int bytes;
+	char letter;
+};
 
 class inode {
-
-	private:
 
 	  std::string file_name;
 	  int file_size;
@@ -17,9 +22,9 @@ class inode {
 
 };
 
-
 class super_block{
- public:
+
+ 	public:
 		int block_size;
 		int num_blocks;
 		int db_ptr;
@@ -28,20 +33,13 @@ class super_block{
 		super_block(int, int, int, int, int);
 };
 
-
 struct file_data_holder {
 
   super_block * s_block;
-
   inode * inode_bitmap;
-
   int * data_bitmap;
-
   inode ** all_inodes;
 
 };
-
-
-
 
 #endif

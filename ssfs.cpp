@@ -23,12 +23,15 @@
 void * disk_op(void * data){
 
 	std::string * str = static_cast<std::string*>(data);
+	FILE * pFile;
+	char input[255];
 
 	//Wait for commands from the user from command line.
-	while(true){
-		std::string input;
+	while(fscanf(fp, "%s", input)){
+		
+		pFile = fopen((*str).c_str(),"r");
 
-		/* OPEN THREAD FILE */
+		std::cout << input << std::endl;
 
 		if(input.compare(0, 7, "CREATE ") == 0 && input.size() > 7){
 			std::cout << "C" <<  std::endl;

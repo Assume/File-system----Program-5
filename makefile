@@ -3,9 +3,10 @@ OBJS = ssfs_mkdsk.o disk.o
 OBJS1 = ssfs.o disk.o
 EXEC = ssfs_mkdsk
 EXEC1 = ssfs
+LIBS = -pthread -lrt
 
 all: $(OBJS1)
-	$(CC) -o $(EXEC1) $(OBJS1) -pthread -lrt
+	$(CC) -o $(EXEC1) $(OBJS1) $(LIBS)
 
 ssfs: $(OBJS1)
 	$(CC) -o $(EXEC1) $(OBJS1)
