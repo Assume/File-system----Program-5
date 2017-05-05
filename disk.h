@@ -7,7 +7,7 @@
 class inode {
 
  public:
-	  std::string file_name;
+	  char * file_name;
 	  int file_size;
 	  int db_ptr[12];
 	  int ib_ptr;
@@ -33,7 +33,7 @@ struct file_data_holder {
   super_block * s_block;
   int * inode_bitmap;
   int * data_bitmap;
-  inode* all_inodes[256];
+  inode * all_inodes;
 
 };
 
