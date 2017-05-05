@@ -22,9 +22,11 @@
 
 bool does_file_exist(file_data_holder fh, std::string f_name){
 
-	for(int i = 0; i < 256; i++)
-		if(strcmp(fh.all_inodes[i].file_name, f_name.c_str()) == 0)
+	for(int i = 0; i < 256; i++) {
+		if(strcmp(fh.all_inodes[i].file_name, f_name.c_str()) == 0){
 			return true;
+		}
+	}
 	return false;
 }
 
@@ -113,12 +115,9 @@ void unlink(file_data_holder & holder, inode &in){
 		i++;
 	}
 	
-	int d_arr[12] = {-1};
-	int d_arr2[33] = {-1};
-	memcpy(in.file_name, d_arr2, sizeof(d_arr2));
-	std::cout << "UNLINKING: " << in.file_name[0] << " " << in.file_name[10] << std::endl;
-	memcpy(in.db_ptr, d_arr, sizeof(d_arr));
-	std::cout << "UNLINKING: " << in.db_ptr[0] << " " << in.db_ptr[7] << std::endl;
+	std::cout << "unlinking file: " << in.file_name << std::endl;
+	memset(in.file_name, -1, sizeof(in.file_name));
+	memset(in.db_ptr, -1, sizeof(in.db_ptr));
 	in.file_size = -1;
 	in.ib_ptr = -1;
 	in.dib_ptr = -1;;
@@ -132,6 +131,7 @@ bool delete_file(file_data_holder & holder, std::string file_name){
 		if(!file_name.compare(holder.all_inodes[i].file_name)){
 			unlink(holder, holder.all_inodes[i]);
 			holder.inode_bitmap[i] = 0;
+			return true;
 		}
 	}
 	return true;
