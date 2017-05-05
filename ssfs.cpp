@@ -44,13 +44,9 @@ void * disk_op(void * data){
 			std::cout << "line read" << std::endl;
 
 			message ms;
-			token = line.substr(0, line.find(" "));
+			token = line.substr(0, line.find('\n'));
 			ms.cmd = new char[sizeof(token)];
-			ms.cmd[0] = 'T';
-			ms.cmd[1] = 'E';
-			ms.cmd[2] = 'S';
-			ms.cmd[3] = 'T';
-			//strcpy(ms.cmd, token.c_str());
+			strcpy(ms.cmd, token.c_str());
 			ms.fname = nullptr;
 			ms.start = -1;;
 			ms.bytes = -1;
