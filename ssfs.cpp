@@ -32,10 +32,6 @@ void * disk_op(void * data){
 
 	std::cout << "filename: " << *str << std::endl;
 
-	if(!shm_ptr){
-		perror("shared memory not initialized");
-	}
-
 	if (p_file.is_open())
 	{
 		while (!p_file.eof() )
@@ -54,7 +50,7 @@ void * disk_op(void * data){
 			ms.valid = 1;
 
 			//LOCK
-			add_shared_to(ms, shm_ptr);
+			add_buffer(ms, shm_ptr);
 			//UNLOCK
 		}
 		p_file.close();

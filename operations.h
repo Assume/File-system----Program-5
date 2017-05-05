@@ -18,7 +18,7 @@ bool read(std::vector<std::string>);
 bool create(file_data_holder &, std::string);
 bool import(std::vector<std::string>);
 bool cat(std::string);
-bool f_delete(std::string);
+bool delete_file(file_data_holder &, std::string);
 void list_files(file_data_holder &);
 
 int get_starting_offset(file_data_holder);

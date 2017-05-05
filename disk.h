@@ -13,7 +13,6 @@ class inode {
 	  int ib_ptr;
 	  int dib_ptr;
 
-
 	  int get_unused_data_block();
 
 };
