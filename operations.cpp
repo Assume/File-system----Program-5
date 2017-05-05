@@ -19,7 +19,6 @@
 #include "disk.h"
 #include "operations.h"
 
-
 void write(std::vector<std::string> vec){
 
   std::string command = vec[0];
@@ -177,4 +176,20 @@ bool create(file_data_holder &fh, std::string f_name){
 	fh.inode_bitmap[index] = 1;
 	return true;
 
+}
+
+int add_shared_to(message & mes, void * ptr){
+
+	int pos = 0;
+	while(pos < 4096){
+		if((*((message *)ptr)).cmd == 0 || strcmp("EMPTY", (*((message *)ptr)).cmd)){
+			*((char *)ptr) = 1;
+			break;
+		} else {
+			(*((char *)ptr))++;
+			//pos += sizeof(message);
+			break;
+		}
+	}
+	return pos;
 }

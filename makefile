@@ -23,4 +23,4 @@ test: $(TEST)
 	$(CC) -c -g -lstdc++ $^ 
 
 .PHONY clean:
-	rm -rf $(EXEC) $(EXEC1) $(EXECT) *.o DISK
+	rm -rf $(EXEC) $(EXEC1) $(EXECT) *.o 

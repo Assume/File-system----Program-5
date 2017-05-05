@@ -22,4 +22,7 @@ void f_delete(std::string);
 void list_files();
 int get_starting_offset(file_data_holder &);
 
+//shared memory
+int add_shared_to(message &, void *);
+
 #endif

@@ -41,7 +41,7 @@ struct file_data_holder {
 struct message {
 
 	char * cmd;
-	char * name;
+	char * fname;
 	int start;
 	int bytes;
 	char letter;

@@ -27,7 +27,8 @@ void * disk_op(void * data){
 
 	std::string * str = static_cast<std::string*>(data);
 	std::ifstream p_file((*str).c_str());
-	std::string input;
+	std::string line;
+	std::string token;
 
 	std::cout << "filename: " << *str << std::endl;
 
@@ -39,8 +40,20 @@ void * disk_op(void * data){
 	{
 		while (!p_file.eof() )
 		{
-			getline(p_file, input);
-			add_to_shared
+			getline(p_file, line);
+
+			message ms;
+			token = line.substr(0, line.find(" "));
+			ms.cmd = new char[sizeof(token)];
+			strcpy(ms.cmd, token.c_str());
+			ms.fname = nullptr;
+			ms.start = -1;;
+			ms.bytes = -1;
+			ms.letter = -1;
+
+			//LOCK
+			add_shared_to(ms, shm_ptr);
+			//UNLOCK
 		}
 		p_file.close();
 	}
@@ -149,10 +162,15 @@ void * disk_op(void * data){
 			   } else {
 			   disk_op()
 			   }*/
-			if(*((char *)shm_ptr) != 0){
-				std::cout << sizeof((*(char *)shm_ptr)) << std::endl;
-				std::cout << (*(char *)shm_ptr) << std::endl;
-				shm_ptr = (char *)(shm_ptr) + sizeof((*(char *)shm_ptr));
+			std::cout << "before empty" << std::endl;
+			if((*((message *)shm_ptr)).cmd == 0 || strcmp("EMPTY", (*((message *)shm_ptr)).cmd)){
+				std::cout << "1" << std::endl;
+				std::cout << sizeof((*(message *)shm_ptr)) << std::endl;
+				std::cout << "2" << std::endl;
+				std::cout << ((char *)(*((message *)shm_ptr)).cmd) << std::endl;
+				std::cout << "3" << std::endl;
+				shm_ptr = ((message *) shm_ptr) + 1;
+				std::cout << *((int *)shm_ptr) << std::endl;
 			}
 		}
 
