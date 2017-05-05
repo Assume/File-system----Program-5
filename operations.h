@@ -15,7 +15,7 @@ bool all_disk_op_valid(std::string *, int);
 //commands on disk
 void write(std::vector<std::string>);
 void read(std::vector<std::string>);
-void create(std::string file_name);
+bool create(file_data_holder &, std::string);
 void import(std::vector<std::string>);
 void cat(std::string);
 void f_delete(std::string);

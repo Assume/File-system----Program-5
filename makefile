@@ -1,4 +1,4 @@
-CC = g++
+CC = g++ -std=c++11
 OBJS = ssfs_mkdsk.o disk.o operations.o
 OBJS1 = ssfs.o disk.o operations.o
 TEST = disk.o test_for_ssfs.o operations.o
@@ -13,7 +13,7 @@ all: $(OBJS1)
 ssfs: $(OBJS1)
 	$(CC) -o $(EXEC1) $(OBJS1)
 
-mkdsk: $(OBJS)
+disk: $(OBJS)
 	$(CC) -o $(EXEC) $(OBJS)
 
 test: $(TEST)

@@ -53,17 +53,6 @@ int main(int argc, char * argv[]){
 	
 	inode in;
 
-<<<<<<< HEAD
-	in.file_name[0] = 't';
-	in.file_name[1] = 'e';
-	in.file_name[2] = 's';
-	in.file_name[3] = 't';
-	in.file_name[4] = '\0';
-	
-	in.dib_ptr = 20;
-
-=======
->>>>>>> f2c223dd0c8db89586a1fbf4c6b76d72c23eaf29
 	inode real_inodes[256];
 
 	for(int i = 0; i < 256; i++)
