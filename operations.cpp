@@ -147,3 +147,30 @@ int get_starting_offset(file_data_holder & holder){
   return holder.s_block -> block_size + (sizeof(int) * 256) + (sizeof(int) * holder.s_block -> db_blocks) + (sizeof(inode) * 256);
 
 }
+
+bool create(file_data_holder fh, std::string f_name){
+
+	int index = get_free_inode(fh);
+	if(index == -1){
+		perror("no inode available");
+		return false;
+	}
+	strcpy(fh.all_inodes[index].file_name, f_name);
+	fh.all_inodes[index].file_size = 0;
+	fh.all_inodes[index].db_ptr = {-1};
+	fh.all_inodes[index].ib_ptr = -1;;
+	fh.all_inodes[index].dib_ptr = -1;
+	fh.inode_bitmap[index] = 1;
+	return true;
+
+}
+
+int get_free_inode(file_data_holder fh){
+
+	for(int i = 0; i < 256; i++){
+		if(fh.inode_bitmap[i] == 0) {
+			return i;
+		}
+	}
+	return -1;
+}
