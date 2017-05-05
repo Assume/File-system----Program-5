@@ -180,18 +180,16 @@ bool create(file_data_holder &fh, std::string f_name){
 
 int add_shared_to(message & mes, void * ptr){
 
-	int pos = 0;
-	std::cout <<  *((int *)ptr) << std::endl;
-	while(pos < 4096){
-		if((*((message *)ptr)).cmd == 0 || strcmp("EMPTY", (*((message *)ptr)).cmd)){
-			*((message *)ptr) += 1;
+	int max_messages = 0;;
+	std::cout <<  (int)((message *)ptr)->valid << std::endl;
+	while(*(int *)ptr < 4096){
+		if(((message *)ptr)->valid == 0 || strcmp("EMPTY", (*((message *)ptr)).cmd)){
+			*((message *)ptr) = mes;
 			break;
 		} else {
-			*((message *)ptr) = mes;
-			(*((char *)ptr))++;
-			//pos += sizeof(message);
-			break;
+			std::cout << *((char *)((message *)ptr)->cmd) << std::endl;
+			*((int *)ptr) += sizeof(message);
 		}
 	}
-	return pos;
+	return *(int *)ptr;
 }

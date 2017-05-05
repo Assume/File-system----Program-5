@@ -45,6 +45,7 @@ struct message {
 	int start;
 	int bytes;
 	char letter;
+	int valid;
 };
 
 #endif

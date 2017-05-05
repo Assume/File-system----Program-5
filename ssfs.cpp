@@ -46,11 +46,16 @@ void * disk_op(void * data){
 			message ms;
 			token = line.substr(0, line.find(" "));
 			ms.cmd = new char[sizeof(token)];
-			strcpy(ms.cmd, token.c_str());
+			ms.cmd[0] = 'T';
+			ms.cmd[1] = 'E';
+			ms.cmd[2] = 'S';
+			ms.cmd[3] = 'T';
+			//strcpy(ms.cmd, token.c_str());
 			ms.fname = nullptr;
 			ms.start = -1;;
 			ms.bytes = -1;
 			ms.letter = -1;
+			ms.valid = 1;
 
 			//LOCK
 			add_shared_to(ms, shm_ptr);
@@ -143,7 +148,7 @@ void * disk_op(void * data){
 		int rc = 0;
 
 		// Create shared memory
-		shm_fd = shm_open("access", O_CREAT | O_RDWR, 0666);
+		shm_fd = shm_open("QUEUE", O_CREAT | O_RDWR, 0666);
 		ftruncate(shm_fd, SIZE);
 		shm_ptr = mmap(0, SIZE, PROT_WRITE, MAP_SHARED, shm_fd, 0); 
 
@@ -183,6 +188,8 @@ void * disk_op(void * data){
 		}
 		*/
 		//pthread_join(threads[0], NULL);
+
+		shm_unlink("QUEUE");
 
 		return 0;
 	}
