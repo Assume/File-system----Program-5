@@ -124,7 +124,7 @@ void unlink(file_data_holder & holder, inode &in){
 	in.dib_ptr = -1;;
 }
 
-bool delete_file(std::string file_name, file_data_holder & holder){
+bool delete_file(file_data_holder & holder, std::string file_name){
 	if(!does_file_exist(holder, file_name))
 		return false;
 
