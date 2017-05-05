@@ -61,7 +61,6 @@ int main(int argc, char * argv[]){
 	in.file_name[3] = 't';
 	in.file_name[4] = '\0';
 	
-	in.file_name = t_char;
 	in.dib_ptr = 20;
 
 	inode real_inodes[256];
