@@ -20,6 +20,7 @@ int main(int argc, char * argv[]){
 
 	memcpy(holder.disk_name, file_name.c_str(), sizeof(file_name));
 
+	/*
 	//LIST
 	std::cout << "Expected output: NO FILES " << std::endl; 
 	list_files(holder);
@@ -41,25 +42,53 @@ int main(int argc, char * argv[]){
 	delete_file(holder, "test3");
 	dstd::cout << "Expected output: NO FILES " << std::endl; 
 	list_files(holder);
+	*/
 
 	//WRITE
 	create(holder, "test1");
 	create(holder, "test2");
 	create(holder, "test3");
 
+	//creating messages
+	message m1;
+	strcpy(m1.cmd, "WRITE");
+	strcpy(m1.file_name, "test1");
+	m1.letter = 'a';
+	m1.start = 50;
+	m1.bytes = 19;
+	message m2;
+	strcpy(m2.cmd, "READ");
+	strcpy(m2.file_name, "test1");
+	m2.start = 25;
+	m2.bytes = 50;
+
 	//small write
-	write(holder, "test1", 'a', 50, 69);
-	read(holder, "test1", 25, 75);
+	write(holder, m1);
+	read(holder, m2);
+
+	//creating messages
+	m1.start = 50;
+	m1.bytes = 2 * holder.s_block.block_size;
+	m1.letter = 'b';
+	m2.start = 0;
+	m2.bytes = 50 + 2 * holder.s_block.block_size;
+
 	//large write
-	write(holder, "test2", 'b', 50, 2 * holder.s_block.block_size);
-	read(holder, "test2", 0, 100 + 2 * holder.s_block.block_size);
+	write(holder, m1);
+	read(holder, m2);
 
 	//READ
+	strcpy(m1.cmd, "READ");
+	m1.letter = -1;
+	m1.start = 40;
+	m1.bytes = 39;
+	strcpy(m2.file_name, "test2");
+	m2.start = 75;
+	m2.bytes = holder.s_block.block_size;
 	//small read
-	read(holder, "test1", 40, 79);
+	read(holder, m1);
 	//medium read
-	read(holder, "test2", 75, 75 + holder.s_block.block_size);
-	
+	read(holder, m2);
 
 	//IMPORT
 	//small file
