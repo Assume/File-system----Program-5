@@ -31,7 +31,7 @@ bool does_file_exist(file_data_holder fh, std::string f_name){
 }
 
 bool write(file_data_holder & holder, message & ms){
-
+	/*
 	int index = get_inode_for_file_name(holder, ms.fname);
 
 	if(index == -1){
@@ -51,20 +51,14 @@ bool write(file_data_holder & holder, message & ms){
 
 	int start_block = holder.all_inodes[index].file_size / holder.s_block -> block_size;
 
+	*/
+}
+
+bool read(file_data_holder & holder, message & ms){
 
 }
 
-bool read(std::vector<std::string> vec){
-
-	std::string ssfs_file_name = vec[1];
-	char start_byte = vec[2].c_str()[0];
-	int num_bytes = std::atoi(vec[3].c_str());
-
-}
-
-bool import(std::vector<std::string> vec){
-	std::string ssfs_file_name = vec[0];
-	std::string unix_file_name = vec[1];
+bool import(file_data_holder & holder, std::string str){
 
 }
 
@@ -204,26 +198,6 @@ bool all_disk_op_valid(std::string * disk_ops, int disk_op_array_size){
 			return false;
 	}
 	return true;
-}
-
-std::vector<std::string> split_string_by_space(std::string str){
-
-	std::istringstream buf(str);
-	std::istream_iterator<std::string> beg(buf), end;
-	std::vector<std::string> tokens(beg, end);
-
-	return tokens;
-}
-
-void *handler_thread(std::string file_name){
-
-	std::ifstream file(file_name.c_str());
-	if(file.is_open())
-		std::cout << "File " << file_name << " opened successfully" << std::endl;
-	else
-		std::cout << "File " << file_name << " failed to open"<< std::endl;
-	file.close();
-
 }
 
 int get_starting_offset(file_data_holder & holder){

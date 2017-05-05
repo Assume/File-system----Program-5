@@ -65,7 +65,8 @@ int main(int argc, char * argv[]){
 	//small write
 	write(holder, m1);
 	read(holder, m2);
-
+	
+	/*
 	//creating messages
 	m1.start = 50;
 	m1.bytes = 2 * holder.s_block.block_size;
@@ -101,7 +102,7 @@ int main(int argc, char * argv[]){
 	import(holder, "import_xl")
 
 	shutdown(holder);
-
+	*/
 
 
 
