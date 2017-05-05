@@ -19,17 +19,31 @@
 #include "disk.h"
 #include "operations.h"
 
-void write(std::vector<std::string> vec){
+bool write(file_data_holder & holder, message & ms){
 
-  std::string command = vec[0];
-  std::string file_name = vec[1];
-  char char_to_write = vec[2].c_str()[0];
-  char start_byte = vec[3].c_str()[0];
-  int num__bytes = std::atoi(vec[4].c_str());
+  int index = get_inode_for_file_name(holder, ms.fname);
+
+  if(index == -1){
+    perror("File requested does not exist");
+    return false;
+  }
+
+  if(ms.start > holder.all_inodes[i].file_size){
+    perror("Start byte passed in write is greater than total bytes in file");
+    return false;
+  }
+
+  if((holder.all_inodes[index].get_unused_data_block * holder.s_block.block_size) + (ms.start + ms.bytes) > (12 * holder.s_block.block_size)){
+    perror("Not enough blocks free to complete write");
+    return false;
+  }
+
+  int start_block = holder.all_inodes[index].file_size / holder.s_block.block_size;
+
   
 }
 
-void read(std::vector<std::string> vec){
+bool read(std::vector<std::string> vec){
 
   std::string ssfs_file_name = vec[1];
   char start_byte = vec[2].c_str()[0];
@@ -37,21 +51,57 @@ void read(std::vector<std::string> vec){
 
 }
 
-void import(std::vector<std::string> vec){
+bool import(std::vector<std::string> vec){
   std::string ssfs_file_name = vec[0];
   std::string unix_file_name = vec[1];
 
 }
 
-void cat(std::string file_name){
+bool cat(file_data_holder & holder, message & ms){
+
+  int index = get_inode_for_file_name(holder, ms.fname);
+
+  if(index == -1){
+    perror("File requested does not exist");
+    return false;
+  }
+
+  int total_blocks_to_read = holder.all_inodes[index].get_unused_data_block();
+  int total_file_size = holder.all_inodes[index].file_size;
+
+  int total_read = 0;
+
+  char * data_read_in = (char *) malloc(total_file_size);
+  
+  for(int i = 0; i < total_blocks_to_read; i++){
+    char * r_block = (char *) malloc(holder.s_block.block_size);
+    FILE * t_file;
+    t_file = fopen(holder.disk_name, "rb");
+    fseek(t_file, get_starting_offset(holder) + ((holder.all_inodes[i].db[i] - 1) * holder.s_block.block_size));
+
+    if(i + 1 == total_blocks_to_read)
+      fread(r_block, 1, total_file_size - total_read, t_file);
+    else
+      fread(r_block, 1, holder.s_block.block_size, t_file);
+    for(int j = 0; j < i + 1 == total_blocks_to_read ? total_file_size - total_read : holder.s_block.block_size; j++)
+      data_read_in[(i * holder.s_block.block_size) + j] = r_block[j];
+
+    fclose(t_file);
+    free(r_block);
+  }
+  std::cout << data_read_in << std::endl;
+  return true;
+}
+
+bool f_delete(std::string file_name){
 
 }
 
-void f_delete(std::string file_name){
+void list_files(file_data_holder & holder){
 
-}
-
-void list_files(){
+  for(int i = 0; i < 256; i++)
+    if(holder.inode_bitmap[i] == 1)
+      std::cout << holder.all_inodes[i].file_name << ":" << holder.all_inodes[i].file_size << std::endl;
 
 }
 
@@ -64,6 +114,7 @@ void read_in_super_block(std::string file_name, file_data_holder & holder){
   super_block * t_sb = (super_block *) super_b;
   holder.s_block = t_sb;
   fclose(temp_file);
+  free(super_b);
 }
 
 void read_in_inode_bitmap(std::string file_name, file_data_holder & holder){
@@ -75,7 +126,7 @@ void read_in_inode_bitmap(std::string file_name, file_data_holder & holder){
   fread(c_inode_bitmap, 1, sizeof(int) * 256, temp_file);
   holder.inode_bitmap = (int *) c_inode_bitmap;
   fclose(temp_file);
-
+  free(c_inode_bitmap);
 }
 
 void read_in_data_bitmap(std::string file_name, file_data_holder & holder){
@@ -99,16 +150,8 @@ void read_in_all_inodes(std::string file_name, file_data_holder & holder){
   char * c_inode = (char *) malloc(sizeof(inode) * 256);
   fread(c_inode, 1, sizeof(inode) * 256 , temp_file);
   holder.all_inodes = (inode *) c_inode;
-  
-  /*
-  char * c_node = (char *) malloc(sizeof(inode));
-  fread(c_node, 1, sizeof(inode), temp_file);
-
-  inode * temp_i = (inode *) c_node;
-
-  std::cout << temp_i -> file_name << std::endl;
-  */
   fclose(temp_file);
+  free(c_inode);
 }
 
 bool all_disk_op_valid(std::string * disk_ops, int disk_op_array_size){
@@ -158,23 +201,52 @@ int get_free_inode(file_data_holder fh){
 	return -1;
 }
 
+
+int get_free_data_block(file_data_holder fh){
+  for(int i = 0; i < fh.s_block -> db_blocks; i++)
+    if(fh.data_bitmap[i] == 0)
+      return i;
+  return -1;
+}
+
+
+int get_inode_for_file_name(file_data_holder fh, char * f_name){
+
+  for(int i = 0; i < 256; i++)
+    if(strcmp(fh.all_inodes[i].file_name, f_name) == 0)
+      return i;
+  return -1;
+}
+
+bool does_file_exist(file_data_holder fh, std::string f_name){
+
+  for(int i = 0; i < 256; i++)
+    if(strcmp(fh.all_inodes[i].file_name, f_name.c_str()) == 0)
+      return true;
+  return false;
+}
+
+
 bool create(file_data_holder &fh, std::string f_name){
 
-	int index = get_free_inode(fh);
-	if(index == -1){
-		perror("no inode available");
-		return false;
-	}
+  if(does_file_exist(fh, f_name))
+    return false;
+  
+  int index = get_free_inode(fh);
+  if(index == -1){
+    perror("no inode available");
+    return false;
+  }
 
-	char arr[12] = {-1};
-
-	strcpy(fh.all_inodes[index].file_name, f_name.c_str());
-	fh.all_inodes[index].file_size = 0;
-	memcpy(fh.all_inodes[index].db_ptr, arr , sizeof(arr));
-	fh.all_inodes[index].ib_ptr = -1;;
-	fh.all_inodes[index].dib_ptr = -1;
-	fh.inode_bitmap[index] = 1;
-	return true;
+   char arr[12] = {-1};
+	
+   strcpy(fh.all_inodes[index].file_name, f_name.c_str());
+   fh.all_inodes[index].file_size = 0;
+   memcpy(fh.all_inodes[index].db_ptr, arr , sizeof(arr));
+   fh.all_inodes[index].ib_ptr = -1;;
+   fh.all_inodes[index].dib_ptr = -1;
+   fh.inode_bitmap[index] = 1;
+   return true;
 
 }
 

@@ -13,14 +13,17 @@ void read_in_all_inodes(std::string, file_data_holder &);
 bool all_disk_op_valid(std::string *, int);
 
 //commands on disk
-void write(std::vector<std::string>);
-void read(std::vector<std::string>);
+bool write(message &);
+bool read(std::vector<std::string>);
 bool create(file_data_holder &, std::string);
-void import(std::vector<std::string>);
-void cat(std::string);
-void f_delete(std::string);
-void list_files();
-int get_starting_offset(file_data_holder &);
+bool import(std::vector<std::string>);
+bool cat(std::string);
+bool f_delete(std::string);
+void list_files(file_data_holder &);
+
+int get_starting_offset(file_data_holder);
+int get_free_data_block(file_data_holder);
+int get_free_inode(file_data_holder);
 
 //shared memory
 int add_shared_to(message &, void *);

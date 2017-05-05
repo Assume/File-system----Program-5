@@ -17,9 +17,14 @@ int main(int argc, char * argv[]){
   read_in_data_bitmap(file_name, holder);
   read_in_all_inodes(file_name, holder);
 
-  create(holder, "test");
-  list();
-
+  holder.disk_name = file_name.c_str();
+  
+  create(holder, "test1");
+  create(holder, "test2");
+  
+  
+  list_files(holder);
+  
   //std::cout << holder.s_block -> block_size << " :: " << holder.s_block -> num_blocks << " :: " << holder.s_block -> db_ptr << " :: " << holder.s_block -> inode_ptr << " :: " << holder.s_block -> db_blocks << std::endl;
 
   /*std::cout << "INODE BITMAP" << std::endl;

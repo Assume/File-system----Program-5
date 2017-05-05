@@ -13,6 +13,9 @@ class inode {
 	  int ib_ptr;
 	  int dib_ptr;
 
+
+	  int get_unused_data_block();
+
 };
 
 //superblock on disk
@@ -34,7 +37,8 @@ struct file_data_holder {
   int * inode_bitmap;
   int * data_bitmap;
   inode * all_inodes;
-
+  char * disk_name;
+  
 };
 
 //message passed to disk_handler
