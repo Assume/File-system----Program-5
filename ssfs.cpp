@@ -41,6 +41,7 @@ void * disk_op(void * data){
 		while (!p_file.eof() )
 		{
 			getline(p_file, line);
+			std::cout << "line read" << std::endl;
 
 			message ms;
 			token = line.substr(0, line.find(" "));
@@ -146,22 +147,29 @@ void * disk_op(void * data){
 		ftruncate(shm_fd, SIZE);
 		shm_ptr = mmap(0, SIZE, PROT_WRITE, MAP_SHARED, shm_fd, 0); 
 
+		/*
 		for(int i = 0; i < num_disk_op_extra; i++){
 			rc = pthread_create(&threads[i], NULL, disk_op, &disk_op_threads[i]); 	
 			assert(rc == 0);
 		}
+		*/
+		//rc = pthread_create(&threads[0], NULL, disk_op, &disk_op_threads[0]); 	
+		std::string s = "1";
+		std::string * p = &s;
+
+		disk_op((void *)(p));
 
 		//if we read three "finished commands we will exit"
 		int finished = 0;
 
 		//disk manager thread waiting for disk op threads to post disk accesses
+		/*
 		while(1){
-			/*
 			   if("FINISHED".compare((char *)(shm_ptr))){
 			   finished++;
 			   } else {
 			   disk_op()
-			   }*/
+			   }
 			std::cout << "before empty" << std::endl;
 			if((*((message *)shm_ptr)).cmd == 0 || strcmp("EMPTY", (*((message *)shm_ptr)).cmd)){
 				std::cout << "1" << std::endl;
@@ -173,6 +181,8 @@ void * disk_op(void * data){
 				std::cout << *((int *)shm_ptr) << std::endl;
 			}
 		}
+		*/
+		//pthread_join(threads[0], NULL);
 
 		return 0;
 	}

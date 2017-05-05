@@ -181,11 +181,13 @@ bool create(file_data_holder &fh, std::string f_name){
 int add_shared_to(message & mes, void * ptr){
 
 	int pos = 0;
+	std::cout <<  *((int *)ptr) << std::endl;
 	while(pos < 4096){
 		if((*((message *)ptr)).cmd == 0 || strcmp("EMPTY", (*((message *)ptr)).cmd)){
-			*((char *)ptr) = 1;
+			*((message *)ptr) += 1;
 			break;
 		} else {
+			*((message *)ptr) = mes;
 			(*((char *)ptr))++;
 			//pos += sizeof(message);
 			break;
