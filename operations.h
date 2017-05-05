@@ -13,7 +13,7 @@ void read_in_all_inodes(std::string, file_data_holder &);
 bool all_disk_op_valid(std::string *, int);
 
 //commands on disk
-bool write(message &);
+bool write(file_data_holder &, message &);
 bool read(std::vector<std::string>);
 bool create(file_data_holder &, std::string);
 bool import(std::vector<std::string>);
