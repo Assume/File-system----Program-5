@@ -43,8 +43,8 @@ struct file_data_holder {
 //message passed to disk_handler
 struct message {
 
-	char * cmd;
-	char * fname;
+	char cmd[10];
+	char fname[32];
 	int start;
 	int bytes;
 	char letter;

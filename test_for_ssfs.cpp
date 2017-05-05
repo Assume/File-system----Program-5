@@ -52,19 +52,21 @@ int main(int argc, char * argv[]){
 	//creating messages
 	message m1;
 	strcpy(m1.cmd, "WRITE");
-	strcpy(m1.file_name, "test1");
+	strcpy(m1.fname, "test1");
 	m1.letter = 'a';
 	m1.start = 50;
 	m1.bytes = 19;
 	message m2;
 	strcpy(m2.cmd, "READ");
-	strcpy(m2.file_name, "test1");
+	strcpy(m2.fname, "test1");
 	m2.start = 25;
 	m2.bytes = 50;
 
 	//small write
 	write(holder, m1);
 	read(holder, m2);
+
+	list_files(holder);
 	
 	/*
 	//creating messages
@@ -83,7 +85,7 @@ int main(int argc, char * argv[]){
 	m1.letter = -1;
 	m1.start = 40;
 	m1.bytes = 39;
-	strcpy(m2.file_name, "test2");
+	strcpy(m2.fname, "test2");
 	m2.start = 75;
 	m2.bytes = holder.s_block.block_size;
 	//small read

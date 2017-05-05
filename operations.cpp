@@ -31,7 +31,7 @@ bool does_file_exist(file_data_holder fh, std::string f_name){
 }
 
 bool write(file_data_holder & holder, message & ms){
-	/*
+
 	int index = get_inode_for_file_name(holder, ms.fname);
 
 	if(index == -1){
@@ -50,8 +50,7 @@ bool write(file_data_holder & holder, message & ms){
 	}
 
 	int start_block = holder.all_inodes[index].file_size / holder.s_block -> block_size;
-
-	*/
+	int start_block_offset
 }
 
 bool read(file_data_holder & holder, message & ms){

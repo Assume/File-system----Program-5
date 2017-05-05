@@ -21,14 +21,14 @@
 
 #define SIZE 4096
 
-void * shm_ptr = nullptr;;
-
 void * disk_op(void * data){
 
 	std::string * str = static_cast<std::string*>(data);
 	std::ifstream p_file((*str).c_str());
 	std::string line;
 	std::string token;
+
+	//CREATE A BOUNDED BUFFER
 
 	std::cout << "filename: " << *str << std::endl;
 
@@ -50,52 +50,15 @@ void * disk_op(void * data){
 			ms.valid = 1;
 
 			//LOCK
-			add_buffer(ms, shm_ptr);
+			add_buffer(ms);// atomically write to bounded buffer
 			//UNLOCK
+
+			//WAIT FOR A CONDITION VARIABLE TO BE SEND FROM DISK MANAGER TO OP THREAD
 		}
 		p_file.close();
-	}
-
-		/*
-		   if(p_file.is_open()){
-
-		//Wait for commands from the user from command line.
-		while(getline(p_file, input)){
-
-		std::cout << input << std::endl;
-
-		if(strcmp(input.substr(0, 7).c_str(), "CREATE ") == 0 && input.size() > 7){
-		std::cout << "C" <<  std::endl;
-		//			create(input.substr(7, input.size()));
-		} else if(strcmp(input.substr(0, 7).c_str(), "IMPORT ") == 0 && input.size() > 7){
-		std::cout << "I" <<  std::endl;
-		//			import(split_string_by_space(input));
-		} else if(strcmp(input.substr(0, 4).c_str(), "CAT ") == 0 && input.size() > 4){
-		std::cout << "C" <<  std::endl;
-		//			cat(input.substr(4, input.size()));
-		} else if(strcmp(input.substr(0, 6).c_str(), "WRITE ") == 0 && input.size() > 6){
-		std::cout << "W" <<  std::endl;
-		//			write(split_string_by_space(input));
-		} else if(strcmp(input.substr(0, 7).c_str(), "DELETE ") == 0 && input.size() > 7){
-		std::cout << "D" <<  std::endl;
-		//			f_delete(input.substr(7, input.size()));
-		} else if(strcmp(input.substr(0, 5).c_str(), "READ ") == 0 && input.size() > 5){
-		std::cout << "R" <<  std::endl;
-		//			read(split_string_by_space(input));
-		} else if(strcmp(input.substr(0, 4).c_str(), "LIST") == 0){
-		std::cout << "L" <<  std::endl;
-		//			list_files();
-		} else if(strcmp(input.substr(0, 8).c_str(), "SHUTDOWN") == 0){
-		std::cout << "S" <<  std::endl;
-		//			shutdown();
-		}
-
-		//WAIT FOR A CONDITION VARIABLE
-		}
-		} else {
+	} else {
 		perror("thread text file is not available");
-		}
-		 */
+		return -1;
 	}
 
 	int main(int argc, char * argv[]){
@@ -136,52 +99,24 @@ void * disk_op(void * data){
 			return -1;
 		}
 
-		int shm_fd = 0;
-		int rc = 0;
-
-		// Create shared memory
-		shm_fd = shm_open("QUEUE", O_CREAT | O_RDWR, 0666);
-		ftruncate(shm_fd, SIZE);
-		shm_ptr = mmap(0, SIZE, PROT_WRITE, MAP_SHARED, shm_fd, 0); 
-
-		/*
+		// Creating multipe threads
 		for(int i = 0; i < num_disk_op_extra; i++){
 			rc = pthread_create(&threads[i], NULL, disk_op, &disk_op_threads[i]); 	
 			assert(rc == 0);
 		}
-		*/
-		//rc = pthread_create(&threads[0], NULL, disk_op, &disk_op_threads[0]); 	
-		std::string s = "1";
-		std::string * p = &s;
-
-		disk_op((void *)(p));
 
 		//if we read three "finished commands we will exit"
 		int finished = 0;
 
 		//disk manager thread waiting for disk op threads to post disk accesses
-		/*
 		while(1){
-			   if("FINISHED".compare((char *)(shm_ptr))){
-			   finished++;
-			   } else {
-			   disk_op()
-			   }
-			std::cout << "before empty" << std::endl;
-			if((*((message *)shm_ptr)).cmd == 0 || strcmp("EMPTY", (*((message *)shm_ptr)).cmd)){
-				std::cout << "1" << std::endl;
-				std::cout << sizeof((*(message *)shm_ptr)) << std::endl;
-				std::cout << "2" << std::endl;
-				std::cout << ((char *)(*((message *)shm_ptr)).cmd) << std::endl;
-				std::cout << "3" << std::endl;
-				shm_ptr = ((message *) shm_ptr) + 1;
-				std::cout << *((int *)shm_ptr) << std::endl;
+			if("FINISHED".compare(){
+				finished++;
+			} else {
+				//call intermediate function with message from buffer that executes it
 			}
 		}
-		*/
-		//pthread_join(threads[0], NULL);
-
-		shm_unlink("QUEUE");
+			//pthread_join(threads[0], NULL);
 
 		return 0;
 	}
