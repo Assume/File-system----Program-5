@@ -29,7 +29,7 @@ bool does_file_exist(file_data_holder fh, std::string f_name){
 	}
 	return false;
 }
-
+/*
 bool write(file_data_holder & holder, message & ms){
 
 	int index = get_inode_for_file_name(holder, ms.fname);
@@ -123,13 +123,14 @@ void write_disk(file_data_holder & holder, int offset, int size, void * ptr, cha
 			}
 		}
 	}
-}
+	}
+*/
 
 bool read(file_data_holder & holder, message & ms){
 
 }
 
-bool import(file_data_holder & holder, std::string str){
+bool import(file_data_holder & holder, message & ms){
 
 }
 
@@ -152,7 +153,7 @@ bool cat(file_data_holder & holder, message & ms){
 	for(int i = 0; i < total_blocks_to_read; i++){
 		char * r_block = (char *) malloc(holder.s_block -> block_size);
 		FILE * t_file;
-		t_file = fopen(holder.disk_name, "rb");
+		t_file = fopen(holder.disk_name, "rb+");
 		fseek(t_file, get_starting_offset(holder) + ((holder.all_inodes[i].db_ptr[i] - 1) * holder.s_block -> block_size), SEEK_SET);
 
 		if(i + 1 == total_blocks_to_read){
@@ -188,12 +189,12 @@ void unlink(file_data_holder & holder, inode &in){
 	in.dib_ptr = -1;;
 }
 
-bool delete_file(file_data_holder & holder, std::string file_name){
-	if(!does_file_exist(holder, file_name))
+bool delete_file(file_data_holder & holder, message & ms){
+	if(!does_file_exist(holder, ms.fname))
 		return false;
 
 	for(int i = 0; i < 256; i++){
-		if(!file_name.compare(holder.all_inodes[i].file_name)){
+		if(!ms.fname.compare(holder.all_inodes[i].file_name)){
 			unlink(holder, holder.all_inodes[i]);
 			holder.inode_bitmap[i] = 0;
 			return true;
@@ -273,7 +274,7 @@ int get_starting_offset(file_data_holder & holder){
 
 }
 
-int get_free_inode(file_data_holder fh){
+int get_free_inode(file_data_holder & fh){
 
 	for(int i = 0; i < 256; i++){
 		if(fh.inode_bitmap[i] == 0) {
@@ -283,24 +284,24 @@ int get_free_inode(file_data_holder fh){
 	return -1;
 }
 
-int get_free_data_block(file_data_holder fh){
+int get_free_data_block(file_data_holder & fh){
 	for(int i = 0; i < fh.s_block -> db_blocks; i++)
 		if(fh.data_bitmap[i] == 0)
 			return i;
 	return -1;
 }
 
-int get_inode_for_file_name(file_data_holder fh, std::string f_name){
+int get_inode_for_file_name(file_data_holder & fh, std::string f_name){
 
 	for(int i = 0; i < 256; i++)
-	  if(strcmp(fh.all_inodes[i].file_name, f_name) == 0)
+	  if(strcmp(fh.all_inodes[i].file_name, f_name.c_str()) == 0)
 			return i;
 	return -1;
 }
 
 bool create(file_data_holder &fh, message & mes){
 
-	if(does_file_exist(fh, f_name))
+	if(does_file_exist(fh, mes.fname))
 		return false;
 
 	int index = get_free_inode(fh);
@@ -311,7 +312,7 @@ bool create(file_data_holder &fh, message & mes){
 
 	char arr[12] = {-1};
 
-	strcpy(fh.all_inodes[index].file_name, f_name.c_str());
+	strcpy(fh.all_inodes[index].file_name, mes.fname.c_str());
 	fh.all_inodes[index].file_size = 0;
 	memcpy(fh.all_inodes[index].db_ptr, arr , sizeof(arr));
 	fh.all_inodes[index].ib_ptr = -1;;

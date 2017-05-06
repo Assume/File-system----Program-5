@@ -2,6 +2,8 @@
 #define DISK_H
 
 #include <iostream>
+#include <string>
+#include <stdlib.h>
 
 //inode on disk
 class inode {
@@ -44,7 +46,7 @@ struct file_data_holder {
 //message passed to disk_handler
 struct message {
 
-  std::string command;
+  std::string cmd;
   std::string fname;
   std::string l_fname;
   int start;

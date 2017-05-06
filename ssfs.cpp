@@ -56,7 +56,7 @@ void * disk_op(void * data){
 
       std::vector<std::string> vec = split_string_by_space(line);
       std::string input = vec[0];
-      ms.command = input;
+      ms.cmd = input;
       if(input.compare("CREATE") == 0){
 	std::string file_name = vec[1];
 	ms.fname = file_name.c_str();
@@ -186,21 +186,21 @@ int main(int argc, char * argv[]){
 		     pthread_cond_signal(&buf_wait);
 		  message t_ms = queue.front();
 		  queue.pop();
-		  if(t_ms.command.compare("CREATE") == 0){
+		  if(t_ms.cmd.compare("CREATE") == 0){
 		    create(file_holder, t_ms);
-		  } else if(t_ms.command.compare("IMPORT") == 0){
+		  } else if(t_ms.cmd.compare("IMPORT") == 0){
 		    import(file_holder, t_ms);
-		  } else if(t_ms.command.compare("CAT") == 0){
-		    cat(file_holder, t_ms);
-		  } else if(t_ms.command.compare("WRITE") == 0){
-		    write(file_holder, t_ms);
-		  } else if(t_ms.command.compare(0, 6, "DELETE") == 0){
+		  } else if(t_ms.cmd.compare("CAT") == 0){
+		    //cat(file_holder, t_ms);
+		  } else if(t_ms.cmd.compare("WRITE") == 0){
+		    //write(file_holder, t_ms);
+		  } else if(t_ms.cmd.compare(0, 6, "DELETE") == 0){
 		    delete_file(file_holder, t_ms);
-		  } else if(t_ms.command.compare(0, 4, "READ") == 0){
+		  } else if(t_ms.cmd.compare(0, 4, "READ") == 0){
 		    read(file_holder, t_ms);
-		  } else if(t_ms.command.compare(0, 4, "LIST") == 0){
+		  } else if(t_ms.cmd.compare(0, 4, "LIST") == 0){
 		    list_files(file_holder);
-		  } else if(t_ms.command.compare(0, 8, "SHUTDOWN") == 0){
+		  } else if(t_ms.cmd.compare(0, 8, "SHUTDOWN") == 0){
 		    shutdown(file_holder);
 		  }
 		}
