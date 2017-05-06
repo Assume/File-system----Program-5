@@ -2,6 +2,8 @@
 #define DISK_H
 
 #include <iostream>
+#include <string>
+#include <stdlib.h>
 
 //inode on disk
 class inode {
