@@ -30,85 +30,85 @@ bool does_file_exist(file_data_holder fh, std::string f_name){
 	return false;
 }
 /*
-bool write(file_data_holder & holder, message & ms){
+   bool write(file_data_holder & holder, message & ms){
 
-	int index = get_inode_for_file_name(holder, ms.fname);
+   int index = get_inode_for_file_name(holder, ms.fname);
 
-	if(index == -1){
-		perror("File requested does not exist");
-		return false;
-	}
+   if(index == -1){
+   perror("File requested does not exist");
+   return false;
+   }
 
-	if(ms.start > holder.all_inodes[index].file_size){
-		perror("Start byte passed in write is greater than total bytes in file");
-		return false;
-	}
+   if(ms.start > holder.all_inodes[index].file_size){
+   perror("Start byte passed in write is greater than total bytes in file");
+   return false;
+   }
 
-	if(((holder.all_inodes[index].get_unused_data_block() * (holder.s_block -> block_size)) + (ms.start + ms.bytes)) > (12 * holder.s_block -> block_size)){
-		perror("Not enough blocks free to complete write");
-		return false;
-	}
+   if(((holder.all_inodes[index].get_unused_data_block() * (holder.s_block -> block_size)) + (ms.start + ms.bytes)) > (12 * holder.s_block -> block_size)){
+   perror("Not enough blocks free to complete write");
+   return false;
+   }
 
-	if((ms.start + ms.bytes) > holder.all_inodes[index].file_size){
-		int add_blocks = ((ms.start + ms.bytes) / (holder.s_block -> block_size)) - (holder.all_inodes[index].file_size/ (holder.s_block -> block_size));
-		int off = (ms.start + ms.bytes) % (holder.s_block -> block_size)
-			append_write(holder, index, add_blocks, ms.letter, off);
-	}
+   if((ms.start + ms.bytes) > holder.all_inodes[index].file_size){
+   int add_blocks = ((ms.start + ms.bytes) / (holder.s_block -> block_size)) - (holder.all_inodes[index].file_size/ (holder.s_block -> block_size));
+   int off = (ms.start + ms.bytes) % (holder.s_block -> block_size)
+   append_write(holder, index, add_blocks, ms.letter, off);
+   }
 
-	//write the rest of the current block
-	int cur_blk = holder.s_block -> block_size - (ms.start % holder.s_block -> block_size);
-	write_disk(holder, ms.start, cur_blk, (void *)(&ms.letter));
+//write the rest of the current block
+int cur_blk = holder.s_block -> block_size - (ms.start % holder.s_block -> block_size);
+write_disk(holder, ms.start, cur_blk, (void *)(&ms.letter));
 }
 
 void append_write(file_data_holder & holder, int index, int blocks, char c, int off){
 
-	int i = 0;
-	int blks = blocks;
-	while(holder.all_inodes[index].db_ptr[i] > 0){
-		i++;
-	}
-	holder.all_inodes[index].file_size += bytes;
-	int ib_start = 0;
-	int j;
-	for(j = 0; j < blocks - 1 && (i + j) < 12; j++, blks--){
-		holder.all_inodes[index].db_ptr[i + j] = get_free_data_block(holder);
-		holder.data_bitmap[holder.all_inodes[index].db_ptr[i + j]] = 1;
-		ib_start = get_starting_offset(holder) + holder.all_inodes[index].db_ptr[i + j]  * holder.s_block -> block_size;
-		write_disk(holder, ib_start, holder.s_block -> block_size, (void *)(&d_address));
-	}
+int i = 0;
+int blks = blocks;
+while(holder.all_inodes[index].db_ptr[i] > 0){
+i++;
+}
+holder.all_inodes[index].file_size += bytes;
+int ib_start = 0;
+int j;
+for(j = 0; j < blocks - 1 && (i + j) < 12; j++, blks--){
+holder.all_inodes[index].db_ptr[i + j] = get_free_data_block(holder);
+holder.data_bitmap[holder.all_inodes[index].db_ptr[i + j]] = 1;
+ib_start = get_starting_offset(holder) + holder.all_inodes[index].db_ptr[i + j]  * holder.s_block -> block_size;
+write_disk(holder, ib_start, holder.s_block -> block_size, (void *)(&d_address));
+}
 
-	if(blks == 1){
-		int pos = get_starting_offset(holder) + holder.all_inodes[index].db_ptr[i + j]  * holder.s_block -> block_size;
-		write_disk(holder, pos, off, (void *)(&c));
-	} else {
+if(blks == 1){
+int pos = get_starting_offset(holder) + holder.all_inodes[index].db_ptr[i + j]  * holder.s_block -> block_size;
+write_disk(holder, pos, off, (void *)(&c));
+} else {
 
-		std::cout << "12 data blocks exceeded" << std::endl;
+std::cout << "12 data blocks exceeded" << std::endl;
 
-		if(blks > 0){
+if(blks > 0){
 
-			int i_blocks = holder.s_block -> block_size / 4;
+int i_blocks = holder.s_block -> block_size / 4;
 
-			if(holder.all_inodes[index].dib_ptr == -1){
-				holder.all_inodes[index].dib_ptr = get_free_data_block(holder);
-				holder.data_bitmap[holder.all_inodes[index].dib_ptr];
-			}
+if(holder.all_inodes[index].dib_ptr == -1){
+holder.all_inodes[index].dib_ptr = get_free_data_block(holder);
+holder.data_bitmap[holder.all_inodes[index].dib_ptr];
+}
 
-			int blks2 = blks;
-			int d_address = 0;
-			ib_start = get_starting_offset(holder) +  holder.all_inodes[index].dib_ptr * holder.s_block -> block_size;
+int blks2 = blks;
+int d_address = 0;
+ib_start = get_starting_offset(holder) +  holder.all_inodes[index].dib_ptr * holder.s_block -> block_size;
 
-			for(int k = 0; blks2 > 0 && k < i_blocks; k++, blks2--){
-				d_address = get_free_data_block(holder);
-				holder.data_bitmap[d_address];
-				d_address *= holder.s_block -> block_size;
-				write_disk(holder, ib_start + k * 4, 4, (void *)(&d_address), 'I');		
-			}
+for(int k = 0; blks2 > 0 && k < i_blocks; k++, blks2--){
+d_address = get_free_data_block(holder);
+holder.data_bitmap[d_address];
+d_address *= holder.s_block -> block_size;
+write_disk(holder, ib_start + k * 4, 4, (void *)(&d_address), 'I');		
+}
 
-			if(blks2 > 0){
-				//this means double indirect
-			}
-		}
-	}
+if(blks2 > 0){
+	//this means double indirect
+}
+}
+}
 }
 
 void write_disk(file_data_holder & holder, int offset, int size, void * ptr, char op = 'C'){
@@ -126,7 +126,7 @@ void write_disk(file_data_holder & holder, int offset, int size, void * ptr, cha
 			}
 		}
 	}
-	}
+}
 */
 
 bool read(file_data_holder & holder, message & ms){
@@ -297,11 +297,7 @@ int get_free_data_block(file_data_holder & fh){
 int get_inode_for_file_name(file_data_holder & fh, std::string f_name){
 
 	for(int i = 0; i < 256; i++)
-<<<<<<< HEAD
-		if(strcmp(fh.all_inodes[i].file_name, f_name.c_str()) == 0){
-=======
-	  if(strcmp(fh.all_inodes[i].file_name, f_name.c_str()) == 0)
->>>>>>> 45d29525d8f3cbdce7f4b2784077e9de13c0c84d
+	  if(strcmp(fh.all_inodes[i].file_name, f_name.c_str()) == 0){
 			return i;
 		}
 		return -1;
@@ -318,11 +314,6 @@ bool create(file_data_holder &fh, message & mes){
 		return false;
 	}
 
-<<<<<<< HEAD
-=======
-	char arr[12] = {-1};
-
->>>>>>> 45d29525d8f3cbdce7f4b2784077e9de13c0c84d
 	strcpy(fh.all_inodes[index].file_name, mes.fname.c_str());
 	fh.all_inodes[index].file_size = 0;
 	memset(fh.all_inodes[index].db_ptr, -1 , 12);
