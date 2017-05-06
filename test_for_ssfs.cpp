@@ -44,10 +44,21 @@ int main(int argc, char * argv[]){
 	list_files(holder);
 	*/
 
+	message a1;
+	a1.cmd = "CREATE";
+	//strcpy(a1.fname.c_str(), "test1");
+	//message a2;
+	//strcpy(a2.cmd.c_str(), "CREATE");
+	//strcpy(a2.fname.c_str(), "test2");
+	//message a3;
+	//strcpy(a3.cmd.c_str(), "CREATE");
+	//strcpy(a3.fname.c_str(), "test3");
+
+
 	//WRITE
-	create(holder, "test1");
-	create(holder, "test2");
-	create(holder, "test3");
+	create(holder, a1);
+	create(holder, a2);
+	create(holder, a3);
 
 	//creating messages
 	message m1;
