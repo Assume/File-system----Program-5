@@ -38,11 +38,8 @@ int num_done = 0;
 
 
 void * disk_op(void * data){
-	std::cout << "1" << std::endl;
 	std::string * str = static_cast<std::string*>(data);
-	std::cout << "2" << std::endl;
 	std::ifstream p_file((*str).c_str()); 
-	std::cout << "3" << std::endl;
 	std::string line;  
 
 	//CREATE A BOUNDED BUFFER
@@ -50,15 +47,13 @@ void * disk_op(void * data){
 	if (p_file.is_open()){
 		while (!p_file.eof()){
 			getline(p_file, line);
-			std::cout << "line read" << std::endl;
 			message ms;
-
 			std::vector<std::string> vec = split_string_by_space(line);
 			std::string input = vec[0];
 			ms.cmd = input;
 			if(input.compare("CREATE") == 0){
-				std::string file_name = vec[1];
-				ms.fname = file_name.c_str();
+			  std::string file_name = vec[1];
+			  ms.fname = file_name.c_str();
 			} else if(input.compare("IMPORT") == 0){
 				std::string file_name = vec[1];
 				std::string linux_file_name = vec[2];
@@ -94,9 +89,10 @@ void * disk_op(void * data){
 
 			pthread_mutex_lock(&buf_lock);
 			if(is_buffer_full()){
-				pthread_cond_wait(&buf_wait, &buf_lock);
-				add_buffer(ms);
-			}
+			  pthread_cond_wait(&buf_wait, &buf_lock);
+			  add_buffer(ms);
+			}else
+			  add_buffer(ms);
 			pthread_mutex_unlock(&buf_lock);
 
 		}
@@ -109,14 +105,11 @@ void * disk_op(void * data){
 
 
 bool add_buffer(message & ms){
-
 	queue.push(ms);
 	return true;
-
 }
 
 bool is_buffer_full(){
-
 	return queue.size() == 10;
 }
 
@@ -178,10 +171,11 @@ int main(int argc, char * argv[]){
 	}
 
 	while(1){
-		if(num_done == num_disk_op_extra)
+	  if(num_done == num_disk_op_extra && queue.empty())
 			break;
 		if(!is_buffer_full())
 			pthread_cond_signal(&buf_wait);
+		if(!queue.empty()){
 		message t_ms = queue.front();
 		queue.pop();
 		if(t_ms.cmd.compare("CREATE") == 0){
@@ -201,6 +195,7 @@ int main(int argc, char * argv[]){
 		} else if(t_ms.cmd.compare(0, 8, "SHUTDOWN") == 0){
 			shutdown(file_holder);
 		}
+	     }
 	}
 
 	return 0;
