@@ -38,15 +38,13 @@ int num_done = 0;
 
 
 void * disk_op(void * data){
-
-  thread_data_holder * thread_holder = (thread_data_holder *) data;
-  
-  std::ifstream p_file(thread_holder -> file_name.c_str());
-  std::string line;
+std::cout << "g" << std::endl;  
+  std::string * str = static_cast<std::string*>(data);
+  std::ifstream p_file((*str).c_str()); 
+std::cout << "HERE" << std::endl;
+  std::string line;  
 
   //CREATE A BOUNDED BUFFER
-
-  std::cout << "filename: " << thread_holder -> file_name << std::endl;
 
   if (p_file.is_open()){
     while (!p_file.eof()){
@@ -134,9 +132,9 @@ int main(int argc, char * argv[]){
 			perror("Invalid number of arguments passed. Exiting.");
 			return -1;
 		}
-
+		
 		std::string disk_file_name = argv[1];
-		std::ofstream disk_file;
+		/*std::ofstream disk_file;
 
 		disk_file.open(disk_file_name.c_str());
 
@@ -145,6 +143,7 @@ int main(int argc, char * argv[]){
 			perror("Disk file does not exist. Exiting.");
 			return -1;
 		}
+		*/
 
 		file_data_holder file_holder;
 		
@@ -155,27 +154,25 @@ int main(int argc, char * argv[]){
 		for(int i = 0; i < num_disk_op_extra; i++){
 			disk_op_threads[i] = argv[i + 2];
 		}
-
+		/*
 		//Verify that all passed disk op names are valid
 		if(!all_disk_op_valid(disk_op_threads, num_disk_op_extra)){
 			perror("One or more disk op file names are invalid. Exiting.");
 			return -1;
 		}
-
+		*/
 
 		read_in_super_block(disk_file_name, file_holder);
 		read_in_inode_bitmap(disk_file_name, file_holder);
 		read_in_data_bitmap(disk_file_name, file_holder);
 		read_in_all_inodes(disk_file_name, file_holder);
 
-		thread_data_holder t_data_holder;
 
 		int rc;
 		
 		// Creating multipe threads
 		for(int i = 0; i < num_disk_op_extra; i++){
-		  t_data_holder.file_name = disk_op_threads[i];
-		  rc = pthread_create(&threads[i], NULL, disk_op, &t_data_holder); 	
+		  rc = pthread_create(&threads[i], NULL, disk_op, &disk_op_threads[i]); 	
 		  assert(rc == 0);
 		}
 
