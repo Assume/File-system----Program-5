@@ -16,52 +16,113 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 
+#include <queue>
+
 #include "disk.h"
 #include "operations.h"
 
 #define SIZE 4096
 
+
+
+pthread_mutex_t buf_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t buf_wait = PTHREAD_COND_INITIALIZER;
+
+bool add_buffer(message & ms);
+
+bool is_buffer_full();
+
+std::queue<message> queue;
+
+int num_done = 0;
+
+
 void * disk_op(void * data){
 
-	std::string * str = static_cast<std::string*>(data);
-	std::ifstream p_file((*str).c_str());
-	std::string line;
-	std::string token;
+  thread_data_holder * thread_holder = (thread_data_holder *) data;
+  
+  std::ifstream p_file(thread_holder -> file_name.c_str());
+  std::string line;
 
-	//CREATE A BOUNDED BUFFER
+  //CREATE A BOUNDED BUFFER
 
-	std::cout << "filename: " << *str << std::endl;
+  std::cout << "filename: " << thread_holder -> file_name << std::endl;
 
-	if (p_file.is_open())
-	{
-		while (!p_file.eof() )
-		{
-			getline(p_file, line);
-			std::cout << "line read" << std::endl;
+  if (p_file.is_open()){
+    while (!p_file.eof()){
+      getline(p_file, line);
+      std::cout << "line read" << std::endl;
+      message ms;
 
-			message ms;
-			token = line.substr(0, line.find('\n'));
-			ms.cmd = new char[sizeof(token)];
-			strcpy(ms.cmd, token.c_str());
-			ms.fname = nullptr;
-			ms.start = -1;;
-			ms.bytes = -1;
-			ms.letter = -1;
-			ms.valid = 1;
+      std::vector<std::string> vec = split_string_by_space(line);
+      std::string input = vec[0];
+      ms.command = input;
+      if(input.compare("CREATE") == 0){
+	std::string file_name = vec[1];
+	ms.fname = file_name.c_str();
+      } else if(input.compare("IMPORT") == 0){
+	std::string file_name = vec[1];
+	std::string linux_file_name = vec[2];
+	ms.fname = file_name;
+	ms.l_fname = linux_file_name;
+      } else if(input.compare("CAT") == 0){
+	std::string file_name = vec[1];
+	ms.fname = file_name;
+      } else if(input.compare("WRITE") == 0){
+	std::string file_name = vec[1];
+	char char_to_write = vec[2].c_str()[0];
+	int start_byte = std::atoi(vec[3].c_str());
+	int num_bytes = std::atoi(vec[4].c_str());
+	ms.fname = file_name;
+	ms.letter = char_to_write;
+	ms.start = start_byte;
+	ms.bytes = num_bytes;
+      } else if(input.compare("DELETE") == 0){
+	std::string file_name = vec[1];
+	ms.fname = file_name;
+      } else if(input.compare("READ") == 0){
+	std::string file_name = vec[1];
+	int start_byte = std::atoi(vec[2].c_str());
+	int num_bytes = std::atoi(vec[3].c_str());
+	ms.fname = file_name;
+	ms.start = start_byte;
+	ms.bytes = num_bytes;
+      } else if(input.compare("LIST") == 0){
+	
+      } else if(input.compare("SHUTDOWN") == 0){
+       
+      }
 
-			//LOCK
-			add_buffer(ms);// atomically write to bounded buffer
-			//UNLOCK
+      pthread_mutex_lock(&buf_lock);
+      if(is_buffer_full()){
+	pthread_cond_wait(&buf_wait, &buf_lock);
+	add_buffer(ms);
+      }
+      pthread_mutex_unlock(&buf_lock);
 
-			//WAIT FOR A CONDITION VARIABLE TO BE SEND FROM DISK MANAGER TO OP THREAD
-		}
-		p_file.close();
-	} else {
-		perror("thread text file is not available");
-		return -1;
-	}
+    }
+    p_file.close();
+    num_done++;
+  } else {
+    perror("thread text file is not available");
+  }
+}
 
-	int main(int argc, char * argv[]){
+
+bool add_buffer(message & ms){
+
+  queue.push(ms);
+  return true;
+  
+}
+
+bool is_buffer_full(){
+
+  return queue.size() == 10;
+}
+ 
+
+int main(int argc, char * argv[]){
 
 		// SANITIZE INPUT 1,2,3,4 text files and at least write seudocode for creating threads
 		if(argc == 1){
@@ -85,6 +146,8 @@ void * disk_op(void * data){
 			return -1;
 		}
 
+		file_data_holder file_holder;
+		
 		int num_disk_op_extra = argc - 2;
 		pthread_t threads[num_disk_op_extra];
 		std::string disk_op_threads[num_disk_op_extra];
@@ -99,24 +162,48 @@ void * disk_op(void * data){
 			return -1;
 		}
 
+
+		read_in_super_block(disk_file_name, file_holder);
+		read_in_inode_bitmap(disk_file_name, file_holder);
+		read_in_data_bitmap(disk_file_name, file_holder);
+		read_in_all_inodes(disk_file_name, file_holder);
+
+		thread_data_holder t_data_holder;
+
+		int rc;
+		
 		// Creating multipe threads
 		for(int i = 0; i < num_disk_op_extra; i++){
-			rc = pthread_create(&threads[i], NULL, disk_op, &disk_op_threads[i]); 	
-			assert(rc == 0);
+		  t_data_holder.file_name = disk_op_threads[i];
+		  rc = pthread_create(&threads[i], NULL, disk_op, &t_data_holder); 	
+		  assert(rc == 0);
 		}
 
-		//if we read three "finished commands we will exit"
-		int finished = 0;
-
-		//disk manager thread waiting for disk op threads to post disk accesses
 		while(1){
-			if("FINISHED".compare(){
-				finished++;
-			} else {
-				//call intermediate function with message from buffer that executes it
-			}
+		  if(num_done == num_disk_op_extra)
+		    break;
+		  if(!is_buffer_full())
+		     pthread_cond_signal(&buf_wait);
+		  message t_ms = queue.front();
+		  queue.pop();
+		  if(t_ms.command.compare("CREATE") == 0){
+		    create(file_holder, t_ms);
+		  } else if(t_ms.command.compare("IMPORT") == 0){
+		    import(file_holder, t_ms);
+		  } else if(t_ms.command.compare("CAT") == 0){
+		    cat(file_holder, t_ms);
+		  } else if(t_ms.command.compare("WRITE") == 0){
+		    write(file_holder, t_ms);
+		  } else if(t_ms.command.compare(0, 6, "DELETE") == 0){
+		    delete_file(file_holder, t_ms);
+		  } else if(t_ms.command.compare(0, 4, "READ") == 0){
+		    read(file_holder, t_ms);
+		  } else if(t_ms.command.compare(0, 4, "LIST") == 0){
+		    list_files(file_holder);
+		  } else if(t_ms.command.compare(0, 8, "SHUTDOWN") == 0){
+		    shutdown(file_holder);
+		  }
 		}
-			//pthread_join(threads[0], NULL);
 
 		return 0;
 	}

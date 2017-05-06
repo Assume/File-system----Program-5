@@ -252,6 +252,16 @@ bool create(file_data_holder &fh, std::string f_name){
 
 }
 
+std::vector<std::string> split_string_by_space(std::string str){
+
+  std::istringstream buf(str);
+  std::istream_iterator<std::string> beg(buf), end;
+  std::vector<std::string> tokens(beg, end);
+
+  return tokens;
+}
+
+
 
 void shutdown(file_data_holder & holder){
   FILE * t_file;

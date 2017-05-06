@@ -17,6 +17,7 @@ class inode {
 
 };
 
+
 //superblock on disk
 class super_block{
 
@@ -43,12 +44,20 @@ struct file_data_holder {
 //message passed to disk_handler
 struct message {
 
-	char cmd[10];
-	char fname[32];
-	int start;
-	int bytes;
-	char letter;
-	int valid;
+  std::string command;
+  std::string fname;
+  std::string l_fname;
+  int start;
+  int bytes;
+  char letter;
+
 };
+
+struct thread_data_holder {
+
+  std::string file_name;
+
+};
+
 
 #endif
