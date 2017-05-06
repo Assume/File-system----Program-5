@@ -290,10 +290,10 @@ int get_free_data_block(file_data_holder fh){
 	return -1;
 }
 
-int get_inode_for_file_name(file_data_holder fh, char * f_name){
+int get_inode_for_file_name(file_data_holder fh, std::string f_name){
 
 	for(int i = 0; i < 256; i++)
-		if(strcmp(fh.all_inodes[i].file_name, f_name) == 0)
+	  if(strcmp(fh.all_inodes[i].file_name, f_name) == 0)
 			return i;
 	return -1;
 }
