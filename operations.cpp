@@ -52,9 +52,9 @@ bool write(file_data_holder & holder, message & ms){
 	if((ms.start + ms.bytes) > holder.all_inodes[index].file_size){
 		int add_blocks = ((ms.start + ms.bytes) / (holder.s_block -> block_size)) - (holder.all_inodes[index].file_size/ (holder.s_block -> block_size));
 		int off = (ms.start + ms.bytes) % (holder.s_block -> block_size)
-		append_write(holder, index, add_blocks, ms.letter, off);
+			append_write(holder, index, add_blocks, ms.letter, off);
 	}
-	
+
 	//write the rest of the current block
 	int cur_blk = holder.s_block -> block_size - (ms.start % holder.s_block -> block_size);
 	write_disk(holder, ms.start, cur_blk, (void *)(&ms.letter));
@@ -81,7 +81,7 @@ void append_write(file_data_holder & holder, int index, int blocks, char c, int 
 		int pos = get_starting_offset(holder) + holder.all_inodes[index].db_ptr[i + j]  * holder.s_block -> block_size;
 		write_disk(holder, pos, off, (void *)(&c));
 	} else {
-		
+
 		std::cout << "12 data blocks exceeded" << std::endl;
 
 		if(blks > 0){
@@ -101,7 +101,7 @@ void append_write(file_data_holder & holder, int index, int blocks, char c, int 
 				d_address = get_free_data_block(holder);
 				holder.data_bitmap[d_address];
 				d_address *= holder.s_block -> block_size;
-				write_disk(holder, ib_start + k * 4, 4, (void *)(&d_address));		
+				write_disk(holder, ib_start + k * 4, 4, (void *)(&d_address), 'I');		
 			}
 
 			if(blks2 > 0){
@@ -111,18 +111,18 @@ void append_write(file_data_holder & holder, int index, int blocks, char c, int 
 	}
 }
 
-void write_disk(file_data_holder & holder, int offset, int size, void * ptr, char op){
+void write_disk(file_data_holder & holder, int offset, int size, void * ptr, char op = 'C'){
 
 	FILE * t_file;
 	t_file = fopen (holder.disk_name, "rb+");
-	
+
 	if (t_file != NULL){
 		fseek(t_file, offset, SEEK_SET);
 		if(op == 'I'){
-			fwrite(*(int *)ptr, 1, size, t_file);
+			fwrite(ptr, 1, size, t_file);
 		} else {
 			for(int i = 0; i < size; i++){
-				fwrite(*(char *)ptr, 1, size, t_file);
+				fwrite(ptr, 1, 1, t_file);
 			}
 		}
 	}
@@ -296,14 +296,15 @@ int get_free_data_block(file_data_holder fh){
 int get_inode_for_file_name(file_data_holder fh, std::string f_name){
 
 	for(int i = 0; i < 256; i++)
-	  if(strcmp(fh.all_inodes[i].file_name, f_name) == 0)
+		if(strcmp(fh.all_inodes[i].file_name, f_name.c_str()) == 0){
 			return i;
-	return -1;
-}
+		}
+		return -1;
+	}
 
 bool create(file_data_holder &fh, message & mes){
 
-	if(does_file_exist(fh, f_name))
+	if(does_file_exist(fh, mes.fname))
 		return false;
 
 	int index = get_free_inode(fh);
@@ -312,11 +313,9 @@ bool create(file_data_holder &fh, message & mes){
 		return false;
 	}
 
-	char arr[12] = {-1};
-
-	strcpy(fh.all_inodes[index].file_name, f_name.c_str());
+	strcpy(fh.all_inodes[index].file_name, mes.fname.c_str());
 	fh.all_inodes[index].file_size = 0;
-	memcpy(fh.all_inodes[index].db_ptr, arr , sizeof(arr));
+	memset(fh.all_inodes[index].db_ptr, -1 , 12);
 	fh.all_inodes[index].ib_ptr = -1;;
 	fh.all_inodes[index].dib_ptr = -1;
 	fh.inode_bitmap[index] = 1;
@@ -326,11 +325,11 @@ bool create(file_data_holder &fh, message & mes){
 
 std::vector<std::string> split_string_by_space(std::string str){
 
-  std::istringstream buf(str);
-  std::istream_iterator<std::string> beg(buf), end;
-  std::vector<std::string> tokens(beg, end);
+	std::istringstream buf(str);
+	std::istream_iterator<std::string> beg(buf), end;
+	std::vector<std::string> tokens(beg, end);
 
-  return tokens;
+	return tokens;
 }
 
 

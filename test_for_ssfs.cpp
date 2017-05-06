@@ -46,13 +46,13 @@ int main(int argc, char * argv[]){
 
 	message a1;
 	a1.cmd = "CREATE";
-	//strcpy(a1.fname.c_str(), "test1");
-	//message a2;
-	//strcpy(a2.cmd.c_str(), "CREATE");
-	//strcpy(a2.fname.c_str(), "test2");
-	//message a3;
-	//strcpy(a3.cmd.c_str(), "CREATE");
-	//strcpy(a3.fname.c_str(), "test3");
+	a1.fname = "CREATE";
+	message a2;
+	a2.cmd = "CREATE";
+	a2.fname = "CREATE";
+	message a3;
+	a3.cmd = "CREATE";
+	a3.fname = "CREATE";
 
 
 	//WRITE
@@ -62,14 +62,14 @@ int main(int argc, char * argv[]){
 
 	//creating messages
 	message m1;
-	strcpy(m1.cmd, "WRITE");
-	strcpy(m1.fname, "test1");
+	m1.cmd = "WRITE";
+	m1.fname = "test1";
 	m1.letter = 'a';
 	m1.start = 50;
 	m1.bytes = 19;
 	message m2;
-	strcpy(m2.cmd, "READ");
-	strcpy(m2.fname, "test1");
+	m2.cmd = "READ";
+	m2.fname = "test1";
 	m2.start = 25;
 	m2.bytes = 50;
 
