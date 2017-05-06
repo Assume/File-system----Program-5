@@ -64,31 +64,36 @@ void append_write(file_data_holder & holder, int index, int blocks, char c){
 
 	int i = 0;
 	int blks = blocks;
-	while(holder.all_nodes[index].db_ptr[i] > 0){
+	while(holder.all_inodes[index].db_ptr[i] > 0){
 		i++;
 	}
-	holder.all_nodes[index].file_size += bytes;
+	holder.all_inodes[index].file_size += bytes;
 	int ib_start = 0;
 
 	for(int j = 0; j < blocks - 1 && (i + j) < 12; j++, blks--){
-		holder.all_nodes[index].db_ptr[i + j] = get_free_data_block(holder);
-		holder.data_bitmap[holder.all_nodes[index].db_ptr[i + j]] = 1;
-		ib_start = get_starting_offset(holder) + holder.all_nodes[index].db_ptr[i + j]  * holder.s_block -> block_size;
+		holder.all_inodes[index].db_ptr[i + j] = get_free_data_block(holder);
+		holder.data_bitmap[holder.all_inodes[index].db_ptr[i + j]] = 1;
+		ib_start = get_starting_offset(holder) + holder.all_inodes[index].db_ptr[i + j]  * holder.s_block -> block_size;
 		write_disk(holder, ib_start, holder.s_block -> block_size, (void *)(&d_address));
+	}
+
+	if(blks == 1){
+		write_disk(holder, ms.start, cur_blk, (void *)(&ms.letter));
+		
 	}
 
 	if(blks > 0){
 
 		int i_blocks = holder.s_block -> block_size / 4;
 
-		if(holder.all_nodes[index].dib_ptr == -1){
-			holder.all_nodes[index].dib_ptr = get_free_data_block(holder);
-			holder.data_bitmap[holder.all_nodes[index].dib_ptr];
+		if(holder.all_inodes[index].dib_ptr == -1){
+			holder.all_inodes[index].dib_ptr = get_free_data_block(holder);
+			holder.data_bitmap[holder.all_inodes[index].dib_ptr];
 		}
 
 		int blks2 = blks;
 		int d_address = 0;
-		ib_start = get_starting_offset(holder) +  holder.all_nodes[index].dib_ptr * holder.s_block -> block_size;
+		ib_start = get_starting_offset(holder) +  holder.all_inodes[index].dib_ptr * holder.s_block -> block_size;
 
 		for(int k = 0; blks2 > 0 && k < i_blocks; k++, blks2--){
 			d_address = get_free_data_block(holder);
@@ -148,7 +153,7 @@ bool cat(file_data_holder & holder, message & ms){
 		char * r_block = (char *) malloc(holder.s_block -> block_size);
 		FILE * t_file;
 		t_file = fopen(holder.disk_name, "rb");
-		fseek(t_file, get_starting_offset(holder) + ((holder.all_inodes[i].db[i] - 1) * holder.s_block -> block_size), SEEK_SET);
+		fseek(t_file, get_starting_offset(holder) + ((holder.all_inodes[i].db_ptr[i] - 1) * holder.s_block -> block_size), SEEK_SET);
 
 		if(i + 1 == total_blocks_to_read){
 			fread(r_block, 1, total_file_size - total_read, t_file);
@@ -166,7 +171,7 @@ bool cat(file_data_holder & holder, message & ms){
 	}
 	std::cout << data_read_in << std::endl;
 	return true;
-}*/
+}
 
 void unlink(file_data_holder & holder, inode &in){
 	int i = 0;
@@ -239,7 +244,6 @@ void read_in_data_bitmap(std::string file_name, file_data_holder & holder){
 	fclose(temp_file);
 
 }
-
 
 void read_in_all_inodes(std::string file_name, file_data_holder & holder){
 
