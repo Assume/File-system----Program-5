@@ -49,8 +49,75 @@ bool write(file_data_holder & holder, message & ms){
 		return false;
 	}
 
-	int start_block = holder.all_inodes[index].file_size / holder.s_block -> block_size;
-	int start_block_offset
+	if((ms.start + ms.bytes) > holder.all_inodes[index].file_size){
+		int add_blocks = ((ms.start + ms.bytes) / (holder.s_block -> block_size)) - (holder.all_inodes[index].file_size/ (holder.s_block -> block_size));
+		append_write(holder, index, add_blocks, ms.letter);
+	}
+	
+	//write the rest of the current block
+	int cur_blk = holder.s_block -> block_size - (ms.start % holder.s_block -> block_size);
+	write_disk(holder, ms.start, cur_blk, (void *)(&ms.letter));
+
+}
+
+void append_write(file_data_holder & holder, int index, int blocks, char c){
+
+	int i = 0;
+	int blks = blocks;
+	while(holder.all_nodes[index].db_ptr[i] > 0){
+		i++;
+	}
+	holder.all_nodes[index].file_size += bytes;
+	int ib_start = 0;
+
+	for(int j = 0; j < blocks - 1 && (i + j) < 12; j++, blks--){
+		holder.all_nodes[index].db_ptr[i + j] = get_free_data_block(holder);
+		holder.data_bitmap[holder.all_nodes[index].db_ptr[i + j]] = 1;
+		ib_start = get_starting_offset(holder) + holder.all_nodes[index].db_ptr[i + j]  * holder.s_block -> block_size;
+		write_disk(holder, ib_start, holder.s_block -> block_size, (void *)(&d_address));
+	}
+
+	if(blks > 0){
+
+		int i_blocks = holder.s_block -> block_size / 4;
+
+		if(holder.all_nodes[index].dib_ptr == -1){
+			holder.all_nodes[index].dib_ptr = get_free_data_block(holder);
+			holder.data_bitmap[holder.all_nodes[index].dib_ptr];
+		}
+
+		int blks2 = blks;
+		int d_address = 0;
+		ib_start = get_starting_offset(holder) +  holder.all_nodes[index].dib_ptr * holder.s_block -> block_size;
+
+		for(int k = 0; blks2 > 0 && k < i_blocks; k++, blks2--){
+			d_address = get_free_data_block(holder);
+			holder.data_bitmap[d_address];
+			d_address *= holder.s_block -> block_size;
+			write_disk(holder, ib_start + k * 4, 4, (void *)(&d_address));		
+		}
+
+		if(blks2 > 0){
+			//this means double indirect
+		}
+	}
+}
+
+void write_disk(file_data_holder & holder, int offset, int size, void * ptr, char op){
+
+	FILE * t_file;
+	t_file = fopen (holder.disk_name, "rb+");
+	
+	if (t_file != NULL){
+		fseek(t_file, offset, SEEK_SET);
+		if(op == 'I'){
+			fwrite(*(int *)ptr, 1, size, t_file);
+		} else {
+			for(int i = 0; i < size; i++){
+				fwrite(*(char *)ptr, 1, size, t_file);
+			}
+		}
+	}
 }
 
 bool read(file_data_holder & holder, message & ms){
@@ -61,7 +128,7 @@ bool import(file_data_holder & holder, std::string str){
 
 }
 
-/*bool cat(file_data_holder & holder, message & ms){
+bool cat(file_data_holder & holder, message & ms){
 
 	int index = get_inode_for_file_name(holder, ms.fname);
 
@@ -107,7 +174,7 @@ void unlink(file_data_holder & holder, inode &in){
 		holder.data_bitmap[in.db_ptr[i]] = 0;
 		i++;
 	}
-	
+
 	std::cout << "unlinking file: " << in.file_name << std::endl;
 	memset(in.file_name, -1, sizeof(in.file_name));
 	memset(in.db_ptr, -1, sizeof(in.db_ptr));
@@ -212,14 +279,12 @@ int get_free_inode(file_data_holder fh){
 	return -1;
 }
 
-
 int get_free_data_block(file_data_holder fh){
 	for(int i = 0; i < fh.s_block -> db_blocks; i++)
 		if(fh.data_bitmap[i] == 0)
 			return i;
 	return -1;
 }
-
 
 int get_inode_for_file_name(file_data_holder fh, char * f_name){
 
@@ -229,7 +294,7 @@ int get_inode_for_file_name(file_data_holder fh, char * f_name){
 	return -1;
 }
 
-bool create(file_data_holder &fh, std::string f_name){
+bool create(file_data_holder &fh, message & mes){
 
 	if(does_file_exist(fh, f_name))
 		return false;
@@ -264,69 +329,46 @@ std::vector<std::string> split_string_by_space(std::string str){
 
 
 void shutdown(file_data_holder & holder){
-  FILE * t_file;
-  t_file = fopen (holder.disk_name, "rb+");
 
-  inode real_inodes[256];
+	FILE * t_file;
+	t_file = fopen (holder.disk_name, "rb+");
 
-  int inode_bitmap[256];
+	inode real_inodes[256];
+	int inode_bitmap[256];
+	int data_bitmap[holder.s_block -> db_blocks];
+	super_block sb(holder.s_block -> block_size, holder.s_block -> num_blocks, holder.s_block -> db_ptr, holder.s_block -> inode_ptr, holder.s_block -> db_blocks);
 
-  int data_bitmap[holder.s_block -> db_blocks];
-
-  super_block sb(holder.s_block -> block_size, holder.s_block -> num_blocks, holder.s_block -> db_ptr, holder.s_block -> inode_ptr, holder.s_block -> db_blocks);
-
-  for(int i = 0; i < 256; i++){
-    inode_bitmap[i] = holder.inode_bitmap[i];
-    real_inodes[i] = holder.all_inodes[i];
-  }
-
-  for(int i = 0; i < holder.s_block -> db_blocks; i++)
-    data_bitmap[i] = holder.data_bitmap[i];
-
-
-  if (t_file != NULL){
-    //write superblock byte by byte
-    fwrite(&sb, 1, sizeof(sb), t_file);
-
-
-    //seek to next block after super block
-    fseek(t_file, sb.block_size, SEEK_SET);
-
-    //write inode bitmap to second block
-    fwrite(&inode_bitmap, 1, sizeof(inode_bitmap), t_file);
-
-    //seek to next block -- possibly unnessecary due to write seeking num bytes written
-    //but depends on the size of what was written
-    fseek(t_file, sb.block_size + sizeof(inode_bitmap), SEEK_SET);
-
-    //write data bitmap
-    fwrite(&data_bitmap, 1, sizeof(data_bitmap), t_file);
-
-    fseek(t_file, sb.block_size + sizeof(inode_bitmap) + sizeof(data_bitmap), SEEK_SET);
-
-    fwrite(&real_inodes, 1, sizeof(real_inodes), t_file);
-
-    fclose (t_file);
-  }
-}
-
-
-/*
-int add_shared_to(message & mes, void * ptr){
-
-	int m_mes = 0;
-	while(m_mes < 4){
-		m_mes++;
-		std::cout << "valid: "<<  (int)((message *)ptr)->valid << std::endl;
-		std::cout << "ptr: "<<  *(int *)ptr << std::endl;
-		if(((message *)ptr)->valid == 0 || !strcmp("EMPTY", (*((message *)ptr)).cmd)){
-			*((message *)ptr) = mes;
-			break;
-		} else {
-			std::cout << "command: "<< (char *)((message *)ptr)->cmd << std::endl;
-			(int *)ptr += sizeof(message);
-		}
+	for(int i = 0; i < 256; i++){
+		inode_bitmap[i] = holder.inode_bitmap[i];
+		real_inodes[i] = holder.all_inodes[i];
 	}
-	return m_mes;
+
+	for(int i = 0; i < holder.s_block -> db_blocks; i++)
+		data_bitmap[i] = holder.data_bitmap[i];
+
+
+	if (t_file != NULL){
+		//write superblock byte by byte
+		fwrite(&sb, 1, sizeof(sb), t_file);
+
+
+		//seek to next block after super block
+		fseek(t_file, sb.block_size, SEEK_SET);
+
+		//write inode bitmap to second block
+		fwrite(&inode_bitmap, 1, sizeof(inode_bitmap), t_file);
+
+		//seek to next block -- possibly unnessecary due to write seeking num bytes written
+		//but depends on the size of what was written
+		fseek(t_file, sb.block_size + sizeof(inode_bitmap), SEEK_SET);
+
+		//write data bitmap
+		fwrite(&data_bitmap, 1, sizeof(data_bitmap), t_file);
+
+		fseek(t_file, sb.block_size + sizeof(inode_bitmap) + sizeof(data_bitmap), SEEK_SET);
+
+		fwrite(&real_inodes, 1, sizeof(real_inodes), t_file);
+
+		fclose (t_file);
+	}
 }
-*/
