@@ -51,16 +51,16 @@ bool write(file_data_holder & holder, message & ms){
 
 	if((ms.start + ms.bytes) > holder.all_inodes[index].file_size){
 		int add_blocks = ((ms.start + ms.bytes) / (holder.s_block -> block_size)) - (holder.all_inodes[index].file_size/ (holder.s_block -> block_size));
-		append_write(holder, index, add_blocks, ms.letter);
+		int off = (ms.start + ms.bytes) % (holder.s_block -> block_size)
+		append_write(holder, index, add_blocks, ms.letter, off);
 	}
 	
 	//write the rest of the current block
 	int cur_blk = holder.s_block -> block_size - (ms.start % holder.s_block -> block_size);
 	write_disk(holder, ms.start, cur_blk, (void *)(&ms.letter));
-
 }
 
-void append_write(file_data_holder & holder, int index, int blocks, char c){
+void append_write(file_data_holder & holder, int index, int blocks, char c, int off){
 
 	int i = 0;
 	int blks = blocks;
@@ -69,8 +69,8 @@ void append_write(file_data_holder & holder, int index, int blocks, char c){
 	}
 	holder.all_inodes[index].file_size += bytes;
 	int ib_start = 0;
-
-	for(int j = 0; j < blocks - 1 && (i + j) < 12; j++, blks--){
+	int j;
+	for(j = 0; j < blocks - 1 && (i + j) < 12; j++, blks--){
 		holder.all_inodes[index].db_ptr[i + j] = get_free_data_block(holder);
 		holder.data_bitmap[holder.all_inodes[index].db_ptr[i + j]] = 1;
 		ib_start = get_starting_offset(holder) + holder.all_inodes[index].db_ptr[i + j]  * holder.s_block -> block_size;
@@ -78,32 +78,35 @@ void append_write(file_data_holder & holder, int index, int blocks, char c){
 	}
 
 	if(blks == 1){
-		write_disk(holder, ms.start, cur_blk, (void *)(&ms.letter));
+		int pos = get_starting_offset(holder) + holder.all_inodes[index].db_ptr[i + j]  * holder.s_block -> block_size;
+		write_disk(holder, pos, off, (void *)(&c));
+	} else {
 		
-	}
+		std::cout << "12 data blocks exceeded" << std::endl;
 
-	if(blks > 0){
+		if(blks > 0){
 
-		int i_blocks = holder.s_block -> block_size / 4;
+			int i_blocks = holder.s_block -> block_size / 4;
 
-		if(holder.all_inodes[index].dib_ptr == -1){
-			holder.all_inodes[index].dib_ptr = get_free_data_block(holder);
-			holder.data_bitmap[holder.all_inodes[index].dib_ptr];
-		}
+			if(holder.all_inodes[index].dib_ptr == -1){
+				holder.all_inodes[index].dib_ptr = get_free_data_block(holder);
+				holder.data_bitmap[holder.all_inodes[index].dib_ptr];
+			}
 
-		int blks2 = blks;
-		int d_address = 0;
-		ib_start = get_starting_offset(holder) +  holder.all_inodes[index].dib_ptr * holder.s_block -> block_size;
+			int blks2 = blks;
+			int d_address = 0;
+			ib_start = get_starting_offset(holder) +  holder.all_inodes[index].dib_ptr * holder.s_block -> block_size;
 
-		for(int k = 0; blks2 > 0 && k < i_blocks; k++, blks2--){
-			d_address = get_free_data_block(holder);
-			holder.data_bitmap[d_address];
-			d_address *= holder.s_block -> block_size;
-			write_disk(holder, ib_start + k * 4, 4, (void *)(&d_address));		
-		}
+			for(int k = 0; blks2 > 0 && k < i_blocks; k++, blks2--){
+				d_address = get_free_data_block(holder);
+				holder.data_bitmap[d_address];
+				d_address *= holder.s_block -> block_size;
+				write_disk(holder, ib_start + k * 4, 4, (void *)(&d_address));		
+			}
 
-		if(blks2 > 0){
-			//this means double indirect
+			if(blks2 > 0){
+				//this means double indirect
+			}
 		}
 	}
 }
