@@ -2,14 +2,19 @@
 #include <string>
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h>     /* atoi */
+#include <stdlib.h>
 
 #include "disk.h"
 #include "operations.h"
 
 int main(int argc, char * argv[]){
 
-	std::string file_name = "DISK";
+	std::string file_name;
+	if(argc > 1){
+		file_name = argv[1];
+	} else {
+		file_name = "DISK";
+	}
 
 	file_data_holder holder;
 
@@ -18,7 +23,34 @@ int main(int argc, char * argv[]){
 	read_in_data_bitmap(file_name, holder);
 	read_in_all_inodes(file_name, holder);
 
-	memcpy(holder.disk_name, file_name.c_str(), sizeof(file_name));
+	memcpy(holder.disk_name, file_name.c_str(), sizeof(file_name) + 1);
+
+	//creating messages
+	message m1;
+	m1.cmd = "WRITE";
+	m1.fname = "test1";
+	m1.letter = 'a';
+	m1.start = 0;
+	m1.bytes = 50;
+
+	message m2;
+	m2.cmd = "READ";
+	m2.fname = "test1";
+	m2.start = 10;
+	m2.bytes = 39;
+
+	message m3;
+	m3.cmd = "WRITE";
+	m3.fname = "test1";
+	m3.letter = 'b';
+	m3.start = 10;
+	m3.bytes = 39;
+
+	m1.start = 50;
+	m1.bytes = 2 * holder.s_block.block_size;
+	m1.letter = 'b';
+	m2.start = 0;
+	m2.bytes = 50 + 2 * holder.s_block.block_size;
 
 	/*
 	//LIST
@@ -42,71 +74,32 @@ int main(int argc, char * argv[]){
 	delete_file(holder, "test3");
 	dstd::cout << "Expected output: NO FILES " << std::endl; 
 	list_files(holder);
-	*/
-
-	message a1;
-	a1.cmd = "CREATE";
-	a1.fname = "CREATE";
-	message a2;
-	a2.cmd = "CREATE";
-	a2.fname = "CREATE";
-	message a3;
-	a3.cmd = "CREATE";
-	a3.fname = "CREATE";
-
 
 	//WRITE
 	create(holder, a1);
-	create(holder, a2);
-	create(holder, a3);
-
-	//creating messages
-	message m1;
-	m1.cmd = "WRITE";
-	m1.fname = "test1";
-	m1.letter = 'a';
-	m1.start = 50;
-	m1.bytes = 19;
-	message m2;
-	m2.cmd = "READ";
-	m2.fname = "test1";
-	m2.start = 25;
-	m2.bytes = 50;
 
 	//small write
 	write(holder, m1);
+	write(holder, m3);
 	read(holder, m2);
 
 	list_files(holder);
 	
-	/*
-	//creating messages
-	m1.start = 50;
-	m1.bytes = 2 * holder.s_block.block_size;
-	m1.letter = 'b';
-	m2.start = 0;
-	m2.bytes = 50 + 2 * holder.s_block.block_size;
-
 	//large write
 	write(holder, m1);
 	read(holder, m2);
 
 	//READ
-	strcpy(m1.cmd, "READ");
-	m1.letter = -1;
-	m1.start = 40;
-	m1.bytes = 39;
-	strcpy(m2.fname, "test2");
-	m2.start = 75;
-	m2.bytes = holder.s_block.block_size;
 	//small read
 	read(holder, m1);
 	//medium read
 	read(holder, m2);
+	*/
 
 	//IMPORT
 	//small file
 	import(holder, "import_s")
+	/*
 	//medium file
 	import(holder, "import_m")
 	//large file

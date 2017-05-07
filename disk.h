@@ -19,7 +19,6 @@ class inode {
 
 };
 
-
 //superblock on disk
 class super_block{
 
@@ -60,6 +59,5 @@ struct thread_data_holder {
   std::string file_name;
 
 };
-
 
 #endif

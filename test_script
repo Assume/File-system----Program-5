@@ -1,0 +1,6 @@
+make disk
+./ssfs_mkdsk 1024 128 test_disk
+make test
+./test_for_ssfs test_disk
+make ssfs
+./ssfs test_disk 1 2 3
