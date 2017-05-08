@@ -460,42 +460,13 @@ void write_disk(file_data_holder & fh, int offset, int size, void * ptr, char op
 
 
 bool cat(file_data_holder & fh, message ms){
-
+	
 	int index = get_inode_for_file_name(fh, ms.fname);
+	ms.start = 0;
+	ms.bytes = fh.all_inodes[index].file_size;
+	read(fh, ms);
 
-	if(index == -1){
-		perror("File requested does not exist");
-		return false;
-	}
-
-	int total_blocks_to_read = fh.all_inodes[index].get_unused_data_block();
-	int total_file_size = fh.all_inodes[index].file_size;
-
-	int total_read = 0;
-
-	char * data_read_in = (char *) malloc(total_file_size);
-
-	for(int i = 0; i < total_blocks_to_read; i++){
-		char * r_block = (char *) malloc(fh.s_block -> block_size);
-		FILE * t_file;
-		t_file = fopen(fh.disk_name, "rb+");
-		fseek(t_file, get_starting_offset(fh) + ((fh.all_inodes[i].db_ptr[i] - 1) * fh.s_block -> block_size), SEEK_SET);
-
-		if(i + 1 == total_blocks_to_read){
-			fread(r_block, 1, total_file_size - total_read, t_file);
-		} else {
-			fread(r_block, 1, fh.s_block -> block_size, t_file);
-		}
-		for(int j = 0; j < i + 1 == total_blocks_to_read ? total_file_size - total_read : fh.s_block -> block_size; j++){
-			data_read_in[(i * fh.s_block -> block_size) + j] = r_block[j];
-		}
-		total_read += fh.s_block -> block_size;
-
-
-		fclose(t_file);
-		free(r_block);
-	}
-	return true;
+	ieturn true;
 }
 
 void unlink(file_data_holder & fh, inode &in){
