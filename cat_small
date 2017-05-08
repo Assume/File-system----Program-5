@@ -1,0 +1,2 @@
+WRITE small_import s 0 1000
+CAT small_import

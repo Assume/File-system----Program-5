@@ -1,0 +1,2 @@
+WRITE large_import l 0 2000
+CAT large_import
