@@ -32,7 +32,7 @@ bool does_file_exist(file_data_holder fh, std::string f_name){
 
 bool write(file_data_holder & fh, message ms){
 
-	std::cout << "m.bytes " << ms.bytes << std::endl;
+	std::cout << "write()" << std::endl;
 	int index = get_inode_for_file_name(fh, ms.fname);
 
 	if(index == -1){
@@ -52,19 +52,15 @@ bool write(file_data_holder & fh, message ms){
 
 
 	if((ms.start + ms.bytes) > fh.all_inodes[index].file_size){
-		std::cout << "write()" << std::endl;
 		append(fh, index, ms);
 	}
 
-	std::cout << "m.bytes before append " << ms.bytes << std::endl;
 	write_data(fh, index, ms);
 
 }
 
 void append(file_data_holder & fh, int index, message m){
 
-	std::cout << "m.bytes " << m.bytes << std::endl;
-	std::cout << "append()" << std::endl;
 	int new_size = m.start + m.bytes;
 	int current_block = fh.all_inodes[index].file_size / fh.s_block -> block_size;
 	int new_blocks = new_size / fh.s_block -> block_size;
@@ -72,14 +68,12 @@ void append(file_data_holder & fh, int index, message m){
 	int free_dblk_ind = 0;
 
 	if(fh.all_inodes[index].file_size == 0){
-		std::cout << "append if 1" << std::endl;
 		free_dblk_ind = get_free_data_block(fh);
 		add_block(current_block, index, free_dblk_ind, fh);
 		fh.data_bitmap[free_dblk_ind] = 1;
 	}
 
 	if(current_block < new_blocks){
-		std::cout << "append if" << std::endl;
 		free_dblk_ind = get_free_data_block(fh);
 		add_block(++current_block, index, free_dblk_ind, fh);
 		fh.data_bitmap[free_dblk_ind] = 1;
@@ -164,17 +158,23 @@ void add_block(int c_blk, int index, int new_block, file_data_holder & fh){
 
 void write_data(file_data_holder & fh, int index, message m){
 
-	std::cout << "write_data" << std::endl;
-	std::cout << "m.bytes " << m.bytes << std::endl;
+	std::cout << "write_data()" << std::endl;
 	int current_block = m.start / fh.s_block -> block_size;
 	int blk_st = 0;
 	int blk_end = 0;
+	if(m.start + m.bytes > fh.all_inodes[index].file_size){
+		fh.all_inodes[index].file_size += m.start + m.bytes - fh.all_inodes[index].file_size;
+	}
 
 	//write to first data block
 	if(m.start % fh.s_block -> block_size != 0){
-		if(m.start + m.bytes <= (current_block + 1) * fh.s_block -> block_size){
+		if(m.start <= (current_block + 1) * fh.s_block -> block_size){
 			blk_st = m.start % fh.s_block -> block_size;
-			blk_end = m.start + m.bytes - (current_block * fh.s_block -> block_size);
+			if(m.start + m.bytes > (current_block + 1)* fh.s_block -> block_size){
+				blk_end = (current_block + 1) * fh.s_block -> block_size;
+			} else {
+				blk_end = m.start + m.bytes;
+			}
 			write_file(fh, index, current_block, blk_st, blk_end, m.letter);
 		}
 		current_block++;
@@ -191,9 +191,6 @@ void write_data(file_data_holder & fh, int index, message m){
 	if(m.bytes > 0){
 		write_file(fh, index, current_block, 0, m.bytes, m.letter);
 	}
-
-
-	fh.all_inodes[index].file_size += m.bytes;
 	
 	/*
 	int w_size = m.bytes;
@@ -220,8 +217,6 @@ void write_data(file_data_holder & fh, int index, message m){
 
 void write_file(file_data_holder & fh, int current_file, int cur_block, int byte_start, int byte_end, char data){
 
-	std::cout << "write file" << std::endl;
-
 	int global_block = get_starting_offset(fh) +  fh.all_inodes[current_file].db_ptr[cur_block] * fh.s_block -> block_size; 
 	int start = global_block + byte_start;
 	int end = global_block + byte_end;
@@ -233,11 +228,10 @@ void write_disk_char(file_data_holder & fh, int start, int offset, char data){
 
 	FILE * t_file;
 	t_file = fopen (fh.disk_name, "rb+");
-	std::cout << "test" << std::endl;
+	std::cout << "offset " << offset << std::endl;
 
 	if (t_file != NULL){
 		fseek(t_file, start, SEEK_SET);
-		std::cout << "write_disk_char" << std::endl;
 		for(int i = 0; i < offset; i++){
 			fputc(data, t_file);
 		}
@@ -258,14 +252,12 @@ bool read(file_data_holder & fh, message ms){
 		perror("Start byte passed in read is greater than total bytes in file");
 		return false;
 	}
-	std::cout << "fsize " << fh.all_inodes[index].file_size << std::endl;
 
 	if(ms.bytes +  ms.start > fh.all_inodes[index].file_size){
 		perror("End byte passed in read is greater than total bytes in file");
 		return false;
 	}
 
-	std::cout << "read()" << std::endl;
 	read_data(fh, index, ms);
 
 }
@@ -315,16 +307,13 @@ void read_disk_char(file_data_holder & fh, int start, int offset){
 	FILE * t_file;
 	t_file = fopen (fh.disk_name, "rb+");
 	char c;
-	std::cout << "read_disk_char()" << std::endl;
 
 	if (t_file != NULL){
 		fseek(t_file, start, SEEK_SET);
-		std::cout << '\n';
 		for(int i = 0; i < offset; i++){
 			c = fgetc(t_file);
-			std::cout << c;
+			std::cout << c ;
 		}
-		std::cout << '\n';
 	}
 	fclose(t_file);
 }
@@ -355,7 +344,6 @@ bool import(file_data_holder & fh, message ms){
 	}
 
 
-	std::cout << "import()" << std::endl;
 	if((ms.start + ms.bytes) > fh.all_inodes[index].file_size){
 		append(fh, index, ms);
 	}
@@ -366,11 +354,11 @@ bool import(file_data_holder & fh, message ms){
 
 void import_data(file_data_holder & fh, int index, message m){
 
-	std::cout << "import_data" << std::endl;
 	int current_block = m.start / fh.s_block -> block_size;
 	int blk_st = 0;
 	int blk_end = 0;
 	int ifile_start = 0;
+	fh.all_inodes[index].file_size += m.bytes;
 
 	//write to first data block
 	if(m.start % fh.s_block -> block_size != 0){
@@ -397,10 +385,6 @@ void import_data(file_data_holder & fh, int index, message m){
 		ifile_start += blk_end - blk_st;
 	}
 
-	std::cout << "m.bytes: " << m.bytes << std::endl;
-	std::cout << "fisize " << fh.all_inodes[index].file_size << std::endl;
-
-	fh.all_inodes[index].file_size += m.bytes;
 	
 	/*
 	int w_size = m.bytes;
@@ -427,8 +411,6 @@ void import_data(file_data_holder & fh, int index, message m){
 
 void import_file(file_data_holder & fh, int current_file, int cur_block, int byte_start, int byte_end, std::string iname, int ifile_off){
 
-	std::cout << "import file" << std::endl;
-
 	int global_block = get_starting_offset(fh) +  fh.all_inodes[current_file].db_ptr[cur_block] * fh.s_block -> block_size; 
 	int start = global_block + byte_start;
 	int end = global_block + byte_end;
@@ -446,11 +428,9 @@ void import_disk_char(file_data_holder & fh, int start, int offset, std::string 
 	if (t_file != NULL){
 		fseek(t_file, start, SEEK_SET);
 		fseek(i_file, ifile_off, SEEK_SET);
-		std::cout << "import_disk_char" << std::endl;
 		char data;
 		for(int i = 0; i < offset; i++){
 			data = fgetc(i_file);
-			std::cout << "importing char " << data << " to " << start + i << std::endl;
 			fputc(data, t_file);
 		}
 	}
@@ -515,7 +495,6 @@ bool cat(file_data_holder & fh, message ms){
 		fclose(t_file);
 		free(r_block);
 	}
-	std::cout << data_read_in << std::endl;
 	return true;
 }
 
@@ -526,7 +505,6 @@ void unlink(file_data_holder & fh, inode &in){
 		i++;
 	}
 
-	std::cout << "unlinking file: " << in.file_name << std::endl;
 	memset(in.file_name, -1, sizeof(in.file_name));
 	memset(in.db_ptr, -1, sizeof(in.db_ptr));
 	in.file_size = -1;

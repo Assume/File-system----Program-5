@@ -132,7 +132,9 @@ int main(int argc, char * argv[]){
 	create(holder, wr8);
 
 	write(holder, wr5);
-	read(holder, wr6);
+	//read(holder, wr6);
+	write(holder, wr7);
+	read(holder, wr8);
 	list_files(holder);
 /*
 	//IMPORT
