@@ -32,7 +32,7 @@ bool does_file_exist(file_data_holder fh, std::string f_name){
 
 bool write(file_data_holder & fh, message ms){
 
-	std::cout << "write()" << std::endl;
+  //	std::cout << "write()" << std::endl;
 	int index = get_inode_for_file_name(fh, ms.fname);
 
 	if(index == -1){
@@ -63,7 +63,7 @@ bool write(file_data_holder & fh, message ms){
 			}	
 	}
 
-	std::cout << "new_blocks: " << new_blocks << " current_ublocks: " << current_ublocks <<std::endl;
+	//std::cout << "new_blocks: " << new_blocks << " current_ublocks: " << current_ublocks <<std::endl;
 	if(new_blocks > current_ublocks){
 		perror("Not enough blocks free to complete write");
 		return false;
@@ -136,7 +136,7 @@ void add_id_blk(file_data_holder & fh, int index, int current_block, int dblk){
 
 void write_data(file_data_holder & fh, int index, message m){
 
-	std::cout << "write_data()" << std::endl;
+  //	std::cout << "write_data()" << std::endl;
 	int current_block = m.start / fh.s_block -> block_size;
 	int blk_st = 0;
 	int blk_end = 0;
@@ -239,7 +239,7 @@ void write_disk_char(file_data_holder & fh, int start, int offset, char data){
 
 	FILE * t_file;
 	t_file = fopen (fh.disk_name, "rb+");
-	std::cout << "offset " << offset << std::endl;
+	//std::cout << "offset " << offset << std::endl;
 
 	if (t_file != NULL){
 		fseek(t_file, start, SEEK_SET);
@@ -367,7 +367,7 @@ bool import(file_data_holder & fh, message ms){
 			}	
 	}
 
-	std::cout << "new_blocks: " << new_blocks << " current_ublocks: " << current_ublocks <<std::endl;
+	//std::cout << "new_blocks: " << new_blocks << " current_ublocks: " << current_ublocks <<std::endl;
 	if(new_blocks > current_ublocks){
 		perror("Not enough blocks free to complete write");
 		return false;
