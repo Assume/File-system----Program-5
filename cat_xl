@@ -1,0 +1,2 @@
+WRITE xl_import s 0 6000
+CAT xl_import
