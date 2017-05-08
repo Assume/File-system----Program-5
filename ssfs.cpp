@@ -48,7 +48,9 @@ void * disk_op(void * data){
 		while (!p_file.eof()){
 			getline(p_file, line);
 			message ms;
+			std::cout << line << std::endl;
 			std::vector<std::string> vec = split_string_by_space(line);
+			std::cout << vec[0] << std::endl;
 			std::string input = vec[0];
 			ms.cmd = input;
 			if(input.compare("CREATE") == 0){

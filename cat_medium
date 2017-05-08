@@ -1,2 +1,2 @@
-WRITE medium_import m 0 2000
+WRITE medium_import m 0 1000
 CAT medium_import

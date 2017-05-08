@@ -243,7 +243,7 @@ void write_disk_char(file_data_holder & fh, int start, int offset, char data){
 	if (t_file != NULL){
 		fseek(t_file, start, SEEK_SET);
 		for(int i = 0; i < offset; i++){
-			std::cout << "writing char to " << offset + i << std::endl;
+			//std::cout << "writing char to " << offset + i << std::endl;
 			fputc(data, t_file);
 		}
 	}
@@ -341,7 +341,13 @@ bool import(file_data_holder & fh, message ms){
 	int index = get_inode_for_file_name(fh, ms.fname);
 
 	if(index == -1){
-		index = create(fh, ms.fname);
+		create(fh, ms);
+		int index = get_inode_for_file_name(fh, ms.fname);
+	} else {
+		delete_file(fh, ms);
+		ms.bytes = sz;
+		create(fh, ms);
+		int index = get_inode_for_file_name(fh, ms.fname);
 	}
 
 	if(ms.start > fh.all_inodes[index].file_size){
@@ -628,27 +634,6 @@ bool create(file_data_holder &fh, message mes){
 	fh.all_inodes[index].dib_ptr = -1;
 	fh.inode_bitmap[index] = 1;
 	return true;
-
-}
-
-int create(file_data_holder &fh, std::string name){
-
-	if(does_file_exist(fh, name))
-		return false;
-
-	int index = get_free_inode(fh);
-	if(index == -1){
-		perror("no inode available");
-		return false;
-	}
-
-	strcpy(fh.all_inodes[index].file_name, name.c_str());
-	fh.all_inodes[index].file_size = 0;
-	memset(fh.all_inodes[index].db_ptr, -1 , 12);
-	fh.all_inodes[index].ib_ptr = -1;;
-	fh.all_inodes[index].dib_ptr = -1;
-	fh.inode_bitmap[index] = 1;
-	return index;
 
 }
 
