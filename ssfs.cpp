@@ -141,6 +141,8 @@ int main(int argc, char * argv[]){
 
 	file_data_holder file_holder;
 
+	strcpy(file_holder.disk_name, disk_file_name.c_str());
+	
 	int num_disk_op_extra = argc - 2;
 	pthread_t threads[num_disk_op_extra];
 	std::string disk_op_threads[num_disk_op_extra];
@@ -167,6 +169,7 @@ int main(int argc, char * argv[]){
 	// Creating multipe threads
 	for(int i = 0; i < num_disk_op_extra; i++){
 		rc = pthread_create(&threads[i], NULL, disk_op, &disk_op_threads[i]); 	
+		std::cout << "RC: " << rc << std::endl;
 		assert(rc == 0);
 	}
 
@@ -183,9 +186,9 @@ int main(int argc, char * argv[]){
 		} else if(t_ms.cmd.compare("IMPORT") == 0){
 			import(file_holder, t_ms);
 		} else if(t_ms.cmd.compare("CAT") == 0){
-			//cat(file_holder, t_ms);
+			cat(file_holder, t_ms);
 		} else if(t_ms.cmd.compare("WRITE") == 0){
-			//write(file_holder, t_ms);
+			write(file_holder, t_ms);
 		} else if(t_ms.cmd.compare(0, 6, "DELETE") == 0){
 			delete_file(file_holder, t_ms);
 		} else if(t_ms.cmd.compare(0, 4, "READ") == 0){
@@ -194,6 +197,7 @@ int main(int argc, char * argv[]){
 			list_files(file_holder);
 		} else if(t_ms.cmd.compare(0, 8, "SHUTDOWN") == 0){
 			shutdown(file_holder);
+			return 0;
 		}
 	     }
 	}
