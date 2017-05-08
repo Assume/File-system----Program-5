@@ -19,11 +19,15 @@ void write_disk_char(file_data_holder &, int, int, char);
 void read_disk_char(file_data_holder &, int, int);
 void write_data(file_data_holder &, int, message);
 void write_file(file_data_holder &, int, int, int, int, char);
+void write_disk_int(file_data_holder &, int , int);
 void append(file_data_holder &, int, message);
 void add_block(int, int, int, file_data_holder &);
+void add_id_blk(file_data_holder &, int, int, int);
+void add_did_blk(file_data_holder &, int, int, int);
 bool read(file_data_holder &, message);
 void read_data(file_data_holder &, int, message);
 void read_file(file_data_holder &, int, int, int, int);
+int read_disk_int(file_data_holder &, int);
 bool create(file_data_holder &, message);
 int create(file_data_holder &, std::string);
 bool import(file_data_holder &, message);
@@ -34,6 +38,9 @@ bool cat(file_data_holder &, message);
 bool delete_file(file_data_holder &, message);
 void list_files(file_data_holder &);
 void shutdown(file_data_holder &);
+int get_id_blk(file_data_holder &, int, int);
+int get_unused_data_block(file_data_holder &);
+int get_did_blk(file_data_holder &, int, int);
 
 //reading from disk
 int get_starting_offset(file_data_holder &);

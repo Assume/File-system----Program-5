@@ -150,29 +150,28 @@ int main(int argc, char * argv[]){
 	i2.l_fname = "import_m";
 	import(holder, i2);
 	list_files(holder);
-*/
+
 	//large import
 	message i3;
 	i3.cmd = "IMPORT";
 	i3.fname = "import3";
 	i3.l_fname = "import_l";
-	import(holder, i3)
+	import(holder, i3);
 	list_files(holder);
-/*
+*/
 	//XL import
 	message i4;
 	i4.cmd = "IMPORT";
 	i4.fname = "import4";
 	i4.l_fname = "import_xl";
-	import(holder, i4)
+	import(holder, i4);
 	list_files(holder);
-
+/*
 	//CAT
 	message c1;
 	c1.fname = "cat1";
 	c1.start = 0;
 	c1.bytes = 0;
-	c1.letter = 'a';
 
 	message w1;
 	w1.fname = "cat1";
@@ -184,21 +183,24 @@ int main(int argc, char * argv[]){
 	c2.fname = "cat2";
 	c2.start = 0;
 	c2.bytes = 0;
-	c2.letter = 'b';
 
 	message w2;
 	w2.fname = "cat2";
 	w2.start = 0;
 	w2.bytes = 200;
-	w2.letter = 'a';
+	w2.letter = 'b';
 
 
 	message c3;
 	c3.fname = "cat3";
 	c3.start = 0;
 	c3.bytes = 0;
-	c3.letter = 'c';
+
 	message w3;
+	w3.fname = "cat3";
+	w3.start = 0;
+	w3.bytes = 2000;
+	w3.letter = 'c';
 
 	message c4;
 	c4.cmd = "CREATE";
@@ -213,23 +215,26 @@ int main(int argc, char * argv[]){
 	ca1.cmd = "CAT";
 	ca1.fname = "cat1";
 	create(holder, c1);
-	write(holder, w1);
-	cat(holder, ca1);
+	//write(holder, w1);
+	//cat(holder, ca1);
 
 	//med cat
 	message ca2;
 	ca2.cmd = "CAT";
 	ca2.fname = "cat2";
 	create(holder, c2);
-	write(holder, w2);
-	cat(holder, ca2);
+	//write(holder, w2);
+	//cat(holder, ca2);
 
 	//large cat
 	message ca3;
 	ca3.cmd = "CAT";
-	ca3.name = "cat3";
+	ca3.fname = "cat3";
 	create(holder, c3);
+	write(holder, w3);
 	cat(holder, ca3);
+
+	list_files(holder);
 
 	//xl cat
 	message ca4;
@@ -237,7 +242,6 @@ int main(int argc, char * argv[]){
 	ca4.name = "cat4";
 	create(holder, c4);
 	cat(holder, ca4);
-	*/
 	//SHUTDOWN
 
 

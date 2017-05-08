@@ -45,11 +45,29 @@ bool write(file_data_holder & fh, message ms){
 		return false;
 	}
 
-	if(((fh.all_inodes[index].get_unused_data_block() * (fh.s_block -> block_size)) + (ms.start + ms.bytes)) > (12 * fh.s_block -> block_size)){
+	int current_ublocks = get_unused_data_block(fh);
+	int current_blocks = get_unused_data_block(fh);
+	int new_blocks = (ms.start + ms.bytes - fh.all_inodes[index].file_size) / fh.s_block -> block_size;
+	int new_total = current_blocks + new_blocks;
+
+	if(current_blocks < 13){
+		if(new_total > 12){
+			new_total++;
+			if(new_total > 12 + (fh.s_block->block_size / 4)){
+				new_total++;
+			}	
+		}
+	} else if(current_blocks < 12 + (fh.s_block->block_size / 4) + 1){
+			if(new_total > 12 + (fh.s_block->block_size / 4)){
+				new_total++;
+			}	
+	}
+
+	std::cout << "new_blocks: " << new_blocks << " current_ublocks: " << current_ublocks <<std::endl;
+	if(new_blocks > current_ublocks){
 		perror("Not enough blocks free to complete write");
 		return false;
 	}
-
 
 	if((ms.start + ms.bytes) > fh.all_inodes[index].file_size){
 		append(fh, index, ms);
@@ -82,20 +100,36 @@ void append(file_data_holder & fh, int index, message m){
 
 void add_block(int c_blk, int index, int new_block, file_data_holder & fh){	
 
-	if(c_blk > 11){
+	if(c_blk > (12 + fh.s_block->block_size / 4) - 1){
 		if(fh.all_inodes[index].dib_ptr == -1){
 			fh.all_inodes[index].dib_ptr = get_free_data_block(fh);
-			fh.data_bitmap[free_dblk_ind] = 1;
+			fh.data_bitmap[fh.all_inodes[index].dib_ptr] = 1;
 		}
-		add_in_blk(fh, index, c_blk, new_block);
+		add_did_blk(fh, index, c_blk - 13, new_block);
+	}else if(c_blk > 11){
+		if(fh.all_inodes[index].ib_ptr == -1){
+			fh.all_inodes[index].ib_ptr = get_free_data_block(fh);
+			fh.data_bitmap[fh.all_inodes[index].ib_ptr] = 1;
+		}
+		add_id_blk(fh, index, c_blk, new_block);
 	} else {
 		fh.all_inodes[index].db_ptr[c_blk] = new_block;			
 	}
 }
 
-void add_in_blk(file_data_holder & fh, int index, in current_block, int dblk){
+void add_did_blk(file_data_holder & fh, int index, int current_block, int dblk){
 	
-	int start = fh.all_inodes[index].dib_ptr * fh.s_block -> block_size + current_block * 4;
+	int dindirect_block = fh.all_inodes[index].dib_ptr + (current_block / (fh.s_block->block_size / 4)) * 4; 
+	int indirect_base = (read_disk_int(fh, dindirect_block) * (fh.s_block->block_size / 4) );
+	int indirect_off = current_block % (fh.s_block->block_size / 4) * 4;
+	int indirect_block = indirect_base + indirect_off;
+	write_disk_int(fh, indirect_block, dblk);
+
+}
+
+void add_id_blk(file_data_holder & fh, int index, int current_block, int dblk){
+	
+	int start = fh.all_inodes[index].ib_ptr * fh.s_block -> block_size + current_block * 4;
 	write_disk_int(fh, start, dblk);
 
 }
@@ -140,8 +174,11 @@ void write_data(file_data_holder & fh, int index, message m){
 void write_file(file_data_holder & fh, int current_file, int cur_block, int byte_start, int byte_end, char data){
 
 	int global_block = 0; 
-	if(cur_block > 11){
-		global_block = get_starting_offset(fh) +  get_ib_blk(fh, index, cur_block - 12) * fh.s_block -> block_size; 
+	if(cur_block > 43){
+		global_block = get_starting_offset(fh) +  get_did_blk(fh, current_file, cur_block - 44) * fh.s_block -> block_size; 
+	}
+	else if(cur_block > 11){
+		global_block = get_starting_offset(fh) +  get_id_blk(fh, current_file, cur_block - 12) * fh.s_block -> block_size; 
 	} else {
 		global_block = get_starting_offset(fh) +  fh.all_inodes[current_file].db_ptr[cur_block] * fh.s_block -> block_size; 
 	}
@@ -151,10 +188,20 @@ void write_file(file_data_holder & fh, int current_file, int cur_block, int byte
 	write_disk_char(fh, start, offset, data);
 }
 
-int get_ib_blk(file_data_holder & fh, int index, int c_blk){
+int get_did_blk(file_data_holder & fh, int index, int c_blk){
 		
-	int start = fh.all_inodes[index].dib_ptr + c_blk * 4;
-	read_disk_int(file_data_holder & fh, start)
+	int i_bsize = (fh.s_block->block_size / 4);
+	int start = fh.all_inodes[index].dib_ptr + (c_blk / i_bsize) * 4;
+	int i_block = get_starting_offset(fh) + read_disk_int(fh, start) * fh.s_block->block_size;
+	int d_block = i_block + (c_blk % i_bsize) * 4;
+	return read_disk_int(fh, d_block);
+
+}
+
+int get_id_blk(file_data_holder & fh, int index, int c_blk){
+		
+	int start = fh.all_inodes[index].ib_ptr + c_blk * 4;
+	return read_disk_int(fh, start);
 
 }
 
@@ -162,7 +209,7 @@ void write_disk_int(file_data_holder & fh, int start, int data){
 
 	FILE * t_file;
 	t_file = fopen (fh.disk_name, "rb+");
-	std::cout << "offset " << offset << std::endl;
+	std::cout << "offset " << start << std::endl;
 
 	if (t_file != NULL){
 		fseek(t_file, start, SEEK_SET);
@@ -171,12 +218,12 @@ void write_disk_int(file_data_holder & fh, int start, int data){
 	fclose(t_file);
 }
 
-void read_disk_int(file_data_holder & fh, int start){
+int read_disk_int(file_data_holder & fh, int start){
 
 	FILE * t_file;
 	t_file = fopen (fh.disk_name, "rb+");
 	int val = 0;
-	std::cout << "offset " << offset << std::endl;
+	std::cout << "offset " << start << std::endl;
 
 	if (t_file != NULL){
 		fseek(t_file, start, SEEK_SET);
@@ -276,7 +323,7 @@ void read_disk_char(file_data_holder & fh, int start, int offset){
 		fseek(t_file, start, SEEK_SET);
 		for(int i = 0; i < offset; i++){
 			c = fgetc(t_file);
-			std::cout << c ;
+			std::cout << c << std::endl;
 		}
 	}
 	fclose(t_file);
@@ -302,10 +349,30 @@ bool import(file_data_holder & fh, message ms){
 		return false;
 	}
 
-	if(((fh.all_inodes[index].get_unused_data_block() * (fh.s_block -> block_size)) + (ms.start + ms.bytes)) > (12 * fh.s_block -> block_size)){
+	int current_ublocks = get_unused_data_block(fh);
+	int current_blocks = get_unused_data_block(fh);
+	int new_blocks = (ms.start + ms.bytes - fh.all_inodes[index].file_size) / fh.s_block -> block_size;
+	int new_total = current_blocks + new_blocks;
+
+	if(current_blocks < 13){
+		if(new_total > 12){
+			new_total++;
+			if(new_total > 12 + (fh.s_block->block_size / 4)){
+				new_total++;
+			}	
+		}
+	} else if(current_blocks < 12 + (fh.s_block->block_size / 4) + 1){
+			if(new_total > 12 + (fh.s_block->block_size / 4)){
+				new_total++;
+			}	
+	}
+
+	std::cout << "new_blocks: " << new_blocks << " current_ublocks: " << current_ublocks <<std::endl;
+	if(new_blocks > current_ublocks){
 		perror("Not enough blocks free to complete write");
 		return false;
 	}
+
 
 
 	if((ms.start + ms.bytes) > fh.all_inodes[index].file_size){
@@ -348,29 +415,6 @@ void import_data(file_data_holder & fh, int index, message m){
 		import_file(fh, index, current_block, 0, m.bytes, m.l_fname, ifile_start);
 		ifile_start += blk_end - blk_st;
 	}
-
-	
-	/*
-	int w_size = m.bytes;
-	int w_start = m.start;
-	int w_total = w_start +  w_size;
-	int cur_blk = (fh.s_block -> block_size) - (ms.start % fh.s_block -> block_size);
-	int g_blk = get_last_block(index);
-
-	//writing to last non_full direct block
-	if(w_size <= cur_blk){
-		write_block(fh, index, g_blk, w_start % fh.s_block -> block_size, w_size, m.letter);
-	} else {
-		write_block(fh, index, g_blk, w_start % fh.s_block -> block_size, cur_blk, m.letter);
-		w_start += cur_blk;
-		while(w_start < w_total){
-			//cur_blk = (fh.s_block -> block_size) - (w_start % fh.s_block -> block_size);	
-			if(w_total - w_start < fh.s_block -> block_size){
-				write_block(fh, index, get_last_block(index), w_start % (fh.s_block -> block_size), w_total - w_start, m.letter)
-			w_start += fh.s_block -> block_size;
-		}
-	}
-*/
 }
 
 void import_file(file_data_holder & fh, int current_file, int cur_block, int byte_start, int byte_end, std::string iname, int ifile_off){
@@ -430,7 +474,7 @@ bool cat(file_data_holder & fh, message ms){
 	ms.bytes = fh.all_inodes[index].file_size;
 	read(fh, ms);
 
-	ieturn true;
+	return true;
 }
 
 void unlink(file_data_holder & fh, inode &in){
@@ -656,4 +700,26 @@ void shutdown(file_data_holder & fh){
 
 	}
 	fclose (t_file);
+}
+
+int get_unused_data_block(file_data_holder & fh){
+
+	int open_dblocks = 0;
+	for(int i = 0; i < fh.s_block -> db_blocks; i++){
+		if(fh.data_bitmap[i] == 0){
+			open_dblocks++;
+		}
+	}
+	return open_dblocks;
+}
+
+int get_used_data_block(file_data_holder & fh){
+
+	int full_dblocks = 0;
+	for(int i = 0; i < fh.s_block -> db_blocks; i++){
+		if(fh.data_bitmap[i] == 1){
+			full_dblocks++;
+		}
+	}
+	return full_dblocks;
 }
