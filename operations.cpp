@@ -209,7 +209,7 @@ void write_disk_int(file_data_holder & fh, int start, int data){
 
 	FILE * t_file;
 	t_file = fopen (fh.disk_name, "rb+");
-	std::cout << "offset " << start << std::endl;
+	//std::cout << "offset " << start << std::endl;
 
 	if (t_file != NULL){
 		fseek(t_file, start, SEEK_SET);
@@ -223,7 +223,7 @@ int read_disk_int(file_data_holder & fh, int start){
 	FILE * t_file;
 	t_file = fopen (fh.disk_name, "rb+");
 	int val = 0;
-	std::cout << "offset " << start << std::endl;
+	//std::cout << "offset " << start << std::endl;
 
 	if (t_file != NULL){
 		fseek(t_file, start, SEEK_SET);

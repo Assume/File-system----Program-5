@@ -1,0 +1,2 @@
+WRITE small_import s 10 48
+READ small_import 10 48

@@ -1,0 +1,2 @@
+WRITE small_import Y 50 19
+READ small_import 30 50

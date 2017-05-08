@@ -1,0 +1,2 @@
+WRITE medium_import m 10 150
+READ medium_import 10 150

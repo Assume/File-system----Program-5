@@ -200,6 +200,7 @@ int main(int argc, char * argv[]){
 		}
 	     }
 	}
-
+	shutdown(file_holder);
+	
 	return 0;
 }
