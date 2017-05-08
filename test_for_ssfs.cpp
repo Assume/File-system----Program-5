@@ -56,7 +56,7 @@ int main(int argc, char * argv[]){
 	delete_file(holder, c3);
 	std::cout << "Expected output: NO FILES " << std::endl; 
 	list_files(holder);
-
+*/
 	//WRITE and READ
 	message wr1;
 	message wr2;
@@ -97,7 +97,7 @@ int main(int argc, char * argv[]){
 	read(holder, wr3);
 
 	list_files(holder);
-	//med write and read
+/*	//med write and read
 	message wr5;
 	message wr6;
 	message wr7;
@@ -158,7 +158,7 @@ int main(int argc, char * argv[]){
 	i3.l_fname = "import_l";
 	import(holder, i3);
 	list_files(holder);
-*/
+
 	//XL import
 	message i4;
 	i4.cmd = "IMPORT";
@@ -166,7 +166,7 @@ int main(int argc, char * argv[]){
 	i4.l_fname = "import_s";
 	import(holder, i4);
 	list_files(holder);
-/*
+
 	//CAT
 	message c1;
 	c1.fname = "cat1";
@@ -248,7 +248,7 @@ int main(int argc, char * argv[]){
 
 	//std::cout << holder.s_block -> block_size << " :: " << holder.s_block -> num_blocks << " :: " << holder.s_block -> db_ptr << " :: " << holder.s_block -> inode_ptr << " :: " << holder.s_block -> db_blocks << std::endl;
 
-	/*std::cout << "INODE BITMAP" << std::endl;
+	  std::cout << "INODE BITMAP" << std::endl;
 	  for(int i = 0; i < 256; i++)
 	  std::cout << i << "inode value: " << holder.inode_bitmap[i] << std::endl;
 	  std::cout << "END INODE BITMAP" << std::endl;
