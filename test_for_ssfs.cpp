@@ -163,7 +163,7 @@ int main(int argc, char * argv[]){
 	message i4;
 	i4.cmd = "IMPORT";
 	i4.fname = "import4";
-	i4.l_fname = "import_xl";
+	i4.l_fname = "import_s";
 	import(holder, i4);
 	list_files(holder);
 /*

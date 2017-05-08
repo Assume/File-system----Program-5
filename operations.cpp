@@ -23,7 +23,6 @@
 bool does_file_exist(file_data_holder fh, std::string f_name){
 
 	for(int i = 0; i < 256; i++) {
-	  std::cout << fh.all_inodes[i].file_name << std::endl;
 	  if(strcmp(fh.all_inodes[i].file_name, f_name.c_str()) == 0){
 			return true;
 		}

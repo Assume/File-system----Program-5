@@ -169,7 +169,6 @@ int main(int argc, char * argv[]){
 	// Creating multipe threads
 	for(int i = 0; i < num_disk_op_extra; i++){
 		rc = pthread_create(&threads[i], NULL, disk_op, &disk_op_threads[i]); 	
-		std::cout << "RC: " << rc << std::endl;
 		assert(rc == 0);
 	}
 
