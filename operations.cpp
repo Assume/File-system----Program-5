@@ -32,6 +32,7 @@ bool does_file_exist(file_data_holder fh, std::string f_name){
 
 bool write(file_data_holder & fh, message ms){
 
+	std::cout << "m.bytes " << ms.bytes << std::endl;
 	int index = get_inode_for_file_name(fh, ms.fname);
 
 	if(index == -1){
@@ -55,23 +56,34 @@ bool write(file_data_holder & fh, message ms){
 		append(fh, index, ms);
 	}
 
+	std::cout << "m.bytes before append " << ms.bytes << std::endl;
 	write_data(fh, index, ms);
 
 }
 
 void append(file_data_holder & fh, int index, message m){
 
+	std::cout << "m.bytes " << m.bytes << std::endl;
+	std::cout << "append()" << std::endl;
 	int new_size = m.start + m.bytes;
 	int current_block = fh.all_inodes[index].file_size / fh.s_block -> block_size;
 	int new_blocks = new_size / fh.s_block -> block_size;
 
-	if(current_block < new_blocks){
-		int free_dblk_ind = get_free_data_block(fh);
-		add_block(++current_block, index, free_dblk_ind, fh);
+	int free_dblk_ind = 0;
+
+	if(fh.all_inodes[index].file_size == 0){
+		std::cout << "append if 1" << std::endl;
+		free_dblk_ind = get_free_data_block(fh);
+		add_block(current_block, index, free_dblk_ind, fh);
 		fh.data_bitmap[free_dblk_ind] = 1;
 	}
 
-	std::cout << "append" << std::endl;
+	if(current_block < new_blocks){
+		std::cout << "append if" << std::endl;
+		free_dblk_ind = get_free_data_block(fh);
+		add_block(++current_block, index, free_dblk_ind, fh);
+		fh.data_bitmap[free_dblk_ind] = 1;
+	}
 	
 	/*
 	//write the rest of the current block
@@ -153,6 +165,7 @@ void add_block(int c_blk, int index, int new_block, file_data_holder & fh){
 void write_data(file_data_holder & fh, int index, message m){
 
 	std::cout << "write_data" << std::endl;
+	std::cout << "m.bytes " << m.bytes << std::endl;
 	int current_block = m.start / fh.s_block -> block_size;
 	int blk_st = 0;
 	int blk_end = 0;
@@ -178,6 +191,7 @@ void write_data(file_data_holder & fh, int index, message m){
 	if(m.bytes > 0){
 		write_file(fh, index, current_block, 0, m.bytes, m.letter);
 	}
+
 
 	fh.all_inodes[index].file_size += m.bytes;
 	
@@ -212,7 +226,6 @@ void write_file(file_data_holder & fh, int current_file, int cur_block, int byte
 	int start = global_block + byte_start;
 	int end = global_block + byte_end;
 	int offset = end - start;
-	std::cout << "end: "<<end << " start: " << start << std::endl;
 	write_disk_char(fh, start, offset, data);
 }
 
@@ -220,34 +233,16 @@ void write_disk_char(file_data_holder & fh, int start, int offset, char data){
 
 	FILE * t_file;
 	t_file = fopen (fh.disk_name, "rb+");
-	std::cout << fh.disk_name << std::endl;
+	std::cout << "test" << std::endl;
 
 	if (t_file != NULL){
 		fseek(t_file, start, SEEK_SET);
 		std::cout << "write_disk_char" << std::endl;
 		for(int i = 0; i < offset; i++){
-			std::cout << "writing char " << data << " to " << start + i << std::endl;
 			fputc(data, t_file);
 		}
 	}
 	fclose(t_file);
-}
-
-void write_disk(file_data_holder & fh, int offset, int size, void * ptr, char op){
-
-	FILE * t_file;
-	t_file = fopen (fh.disk_name, "rb+");
-
-	if (t_file != NULL){
-		fseek(t_file, offset, SEEK_SET);
-		if(op == 'I'){
-			fwrite((int *)ptr, 1, size, t_file);
-		} else {
-			for(int i = 0; i < size; i++){
-				fputc(*(char*)ptr, t_file);
-			}
-		}
-	}
 }
 
 bool read(file_data_holder & fh, message ms){
@@ -263,6 +258,7 @@ bool read(file_data_holder & fh, message ms){
 		perror("Start byte passed in read is greater than total bytes in file");
 		return false;
 	}
+	std::cout << "fsize " << fh.all_inodes[index].file_size << std::endl;
 
 	if(ms.bytes +  ms.start > fh.all_inodes[index].file_size){
 		perror("End byte passed in read is greater than total bytes in file");
@@ -303,27 +299,6 @@ void read_data(file_data_holder & fh, int index, message m){
 		read_file(fh, index, current_block, 0, m.bytes);
 	}
 	
-	/*
-	int w_size = m.bytes;
-	int w_start = m.start;
-	int w_total = w_start +  w_size;
-	int cur_blk = (fh.s_block -> block_size) - (ms.start % fh.s_block -> block_size);
-	int g_blk = get_last_block(index);
-
-	//writing to last non_full direct block
-	if(w_size <= cur_blk){
-		write_block(fh, index, g_blk, w_start % fh.s_block -> block_size, w_size, m.letter);
-	} else {
-		write_block(fh, index, g_blk, w_start % fh.s_block -> block_size, cur_blk, m.letter);
-		w_start += cur_blk;
-		while(w_start < w_total){
-			//cur_blk = (fh.s_block -> block_size) - (w_start % fh.s_block -> block_size);	
-			if(w_total - w_start < fh.s_block -> block_size){
-				write_block(fh, index, get_last_block(index), w_start % (fh.s_block -> block_size), w_total - w_start, m.letter)
-			w_start += fh.s_block -> block_size;
-		}
-	}
-*/
 }
 
 void read_file(file_data_holder & fh, int current_file, int cur_block, int byte_start, int byte_end){
@@ -355,12 +330,18 @@ void read_disk_char(file_data_holder & fh, int start, int offset){
 }
 
 bool import(file_data_holder & fh, message ms){
+	
+	int sz = 0;
+	FILE * fp;
+	fp = fopen(ms.l_fname.c_str(), "r");
+	fseek(fp, 0L, SEEK_END);
+	sz = ftell(fp);
+	ms.bytes = sz;
 
 	int index = get_inode_for_file_name(fh, ms.fname);
 
 	if(index == -1){
-		perror("File requested does not exist");
-		return false;
+		index = create(fh, ms.fname);
 	}
 
 	if(ms.start > fh.all_inodes[index].file_size){
@@ -374,14 +355,127 @@ bool import(file_data_holder & fh, message ms){
 	}
 
 
+	std::cout << "import()" << std::endl;
 	if((ms.start + ms.bytes) > fh.all_inodes[index].file_size){
-		std::cout << "write()" << std::endl;
 		append(fh, index, ms);
 	}
 
-	write_data(fh, index, ms);
+	import_data(fh, index, ms);
 
 }
+
+void import_data(file_data_holder & fh, int index, message m){
+
+	std::cout << "import_data" << std::endl;
+	int current_block = m.start / fh.s_block -> block_size;
+	int blk_st = 0;
+	int blk_end = 0;
+	int ifile_start = 0;
+
+	//write to first data block
+	if(m.start % fh.s_block -> block_size != 0){
+		if(m.start + m.bytes <= (current_block + 1) * fh.s_block -> block_size){
+			blk_st = m.start % fh.s_block -> block_size;
+			blk_end = m.start + m.bytes - (current_block * fh.s_block -> block_size);
+			import_file(fh, index, current_block, blk_st, blk_end, m.l_fname, ifile_start);
+		}
+		current_block++;
+		m.bytes -= blk_end - blk_st;
+		ifile_start += blk_end - blk_st;
+	}	
+
+	//write file in block chunks
+	while(m.bytes > fh.s_block -> block_size){
+		import_file(fh, index, current_block, 0, fh.s_block -> block_size, m.l_fname, ifile_start);
+		current_block++;
+		m.bytes -= fh.s_block -> block_size;
+		ifile_start += blk_end - blk_st;
+	}
+	//write left over data to last block
+	if(m.bytes > 0){
+		import_file(fh, index, current_block, 0, m.bytes, m.l_fname, ifile_start);
+		ifile_start += blk_end - blk_st;
+	}
+
+	std::cout << "m.bytes: " << m.bytes << std::endl;
+	std::cout << "fisize " << fh.all_inodes[index].file_size << std::endl;
+
+	fh.all_inodes[index].file_size += m.bytes;
+	
+	/*
+	int w_size = m.bytes;
+	int w_start = m.start;
+	int w_total = w_start +  w_size;
+	int cur_blk = (fh.s_block -> block_size) - (ms.start % fh.s_block -> block_size);
+	int g_blk = get_last_block(index);
+
+	//writing to last non_full direct block
+	if(w_size <= cur_blk){
+		write_block(fh, index, g_blk, w_start % fh.s_block -> block_size, w_size, m.letter);
+	} else {
+		write_block(fh, index, g_blk, w_start % fh.s_block -> block_size, cur_blk, m.letter);
+		w_start += cur_blk;
+		while(w_start < w_total){
+			//cur_blk = (fh.s_block -> block_size) - (w_start % fh.s_block -> block_size);	
+			if(w_total - w_start < fh.s_block -> block_size){
+				write_block(fh, index, get_last_block(index), w_start % (fh.s_block -> block_size), w_total - w_start, m.letter)
+			w_start += fh.s_block -> block_size;
+		}
+	}
+*/
+}
+
+void import_file(file_data_holder & fh, int current_file, int cur_block, int byte_start, int byte_end, std::string iname, int ifile_off){
+
+	std::cout << "import file" << std::endl;
+
+	int global_block = get_starting_offset(fh) +  fh.all_inodes[current_file].db_ptr[cur_block] * fh.s_block -> block_size; 
+	int start = global_block + byte_start;
+	int end = global_block + byte_end;
+	int offset = end - start;
+	import_disk_char(fh, start, offset, iname, ifile_off);
+}
+
+void import_disk_char(file_data_holder & fh, int start, int offset, std::string ifile, int ifile_off){
+
+	FILE * t_file;
+	t_file = fopen (fh.disk_name, "rb+");
+	FILE * i_file;
+	i_file = fopen (ifile.c_str(), "r");
+
+	if (t_file != NULL){
+		fseek(t_file, start, SEEK_SET);
+		fseek(i_file, ifile_off, SEEK_SET);
+		std::cout << "import_disk_char" << std::endl;
+		char data;
+		for(int i = 0; i < offset; i++){
+			data = fgetc(i_file);
+			std::cout << "importing char " << data << " to " << start + i << std::endl;
+			fputc(data, t_file);
+		}
+	}
+	fclose(t_file);
+	fclose(i_file);
+}
+
+void write_disk(file_data_holder & fh, int offset, int size, void * ptr, char op){
+
+	FILE * t_file;
+	t_file = fopen (fh.disk_name, "rb+");
+
+	if (t_file != NULL){
+		fseek(t_file, offset, SEEK_SET);
+		if(op == 'I'){
+			fwrite((int *)ptr, 1, size, t_file);
+		} else {
+			for(int i = 0; i < size; i++){
+				fputc(*(char*)ptr, t_file);
+			}
+		}
+	}
+	fclose(t_file);
+}
+
 
 
 
@@ -457,9 +551,11 @@ bool delete_file(file_data_holder & fh, message ms){
 
 void list_files(file_data_holder & fh){
 
-	for(int i = 0; i < 256; i++)
-		if(fh.inode_bitmap[i] == 1)
+	for(int i = 0; i < 256; i++){
+		if(fh.inode_bitmap[i] == 1){
 			std::cout << fh.all_inodes[i].file_name << ":" << fh.all_inodes[i].file_size << std::endl;
+		}
+	}
 
 }
 
@@ -572,6 +668,27 @@ bool create(file_data_holder &fh, message mes){
 
 }
 
+int create(file_data_holder &fh, std::string name){
+
+	if(does_file_exist(fh, name))
+		return false;
+
+	int index = get_free_inode(fh);
+	if(index == -1){
+		perror("no inode available");
+		return false;
+	}
+
+	strcpy(fh.all_inodes[index].file_name, name.c_str());
+	fh.all_inodes[index].file_size = 0;
+	memset(fh.all_inodes[index].db_ptr, -1 , 12);
+	fh.all_inodes[index].ib_ptr = -1;;
+	fh.all_inodes[index].dib_ptr = -1;
+	fh.inode_bitmap[index] = 1;
+	return index;
+
+}
+
 std::vector<std::string> split_string_by_space(std::string str){
 
 	std::istringstream buf(str);
@@ -624,8 +741,8 @@ void shutdown(file_data_holder & fh){
 
 		fwrite(&real_inodes, 1, sizeof(real_inodes), t_file);
 
-		fclose (t_file);
 	}
+	fclose (t_file);
 }
 
 /*int get_last_block(file_data_holder & fh, int index){
