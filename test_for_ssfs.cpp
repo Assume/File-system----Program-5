@@ -98,7 +98,6 @@ int main(int argc, char * argv[]){
 
 	list_files(holder);
 	//med write and read
-	*/
 	message wr5;
 	message wr6;
 	message wr7;
@@ -132,18 +131,18 @@ int main(int argc, char * argv[]){
 	create(holder, wr8);
 
 	write(holder, wr5);
-	//read(holder, wr6);
+	read(holder, wr6);
 	write(holder, wr7);
 	read(holder, wr8);
 	list_files(holder);
-/*
+
 	//IMPORT
 	//small import
 	message i1;
 	i1.cmd = "IMPORT";
 	i1.fname = "import1";
 	i1.l_fname = "import_s";
-
+*/
 	//medium import
 	message i2;
 	i2.cmd = "IMPORT";
@@ -151,7 +150,7 @@ int main(int argc, char * argv[]){
 	i2.l_fname = "import_m";
 	import(holder, i2);
 	list_files(holder);
-
+/*
 	//large import
 	message i3;
 	i3.cmd = "IMPORT";
