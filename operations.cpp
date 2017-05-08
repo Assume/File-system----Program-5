@@ -78,82 +78,26 @@ void append(file_data_holder & fh, int index, message m){
 		add_block(++current_block, index, free_dblk_ind, fh);
 		fh.data_bitmap[free_dblk_ind] = 1;
 	}
-	
-	/*
-	//write the rest of the current block
-	int cur_blk = (fh.s_block -> block_size) - (ms.start % fh.s_block -> block_size);
-	int g_start = get_starting_offset(fh) + fh.all_inodes[index].db_ptr[i + j]  * fh.s_block -> block_size;
-	write_disk(fh, ms.start, cur_blk, (void *)(&ms.letter));
-	fh.all_inodes[index].file_size += cur_blk;
-
-	int add_blocks = ((ms.start + ms.bytes) / (fh.s_block -> block_size)) - (fh.all_inodes[index].file_size/ (fh.s_block -> block_size));
-	int off = (ms.start + ms.bytes) % (fh.s_block -> block_size);
-	
-	int i = 0;
-	int blks = blocks;
-	
-	//find the first unused direct data block
-	while(fh.all_inodes[index].db_ptr[i] > 0){
-		i++;
-	}
-
-	//increasing size of file
-	fh.all_inodes[index].file_size += blocks * fh.s_block -> block_size + off;
-	int ib_start = 0;
-	int j;
-
-	//increments to blocks - 1 because the last block would only be partially filled so we do that separately
-	for(j = 0; j < blocks - 1 && (i + j) < 12; j++, blks--){
-		//get free block
-		fh.all_inodes[index].db_ptr[i + j] = get_free_data_block(fh);
-		//set data block as used
-		fh.data_bitmap[fh.all_inodes[index].db_ptr[i + j]] = 1;
-		//calculate byte on disk where writing start
-		ib_start = get_starting_offset(fh) + fh.all_inodes[index].db_ptr[i + j]  * fh.s_block -> block_size;
-		//write a block of data
-		write_disk(fh, ib_start, fh.s_block -> block_size, (void *)&c);
-	}
-	
-	//if blks == 1 we are still allocating direct data blocks
-	if(blks == 1){
-		int pos = get_starting_offset(fh) + fh.all_inodes[index].db_ptr[i + j]  * fh.s_block -> block_size;
-		write_disk(fh, pos, off, (void *)(&c));
-	} else {
-
-		std::cout << "12 data blocks exceeded" << std::endl;
-
-		//now we have to allocate a indirect block to memory
-		if(blks > 0){
-
-			int i_blocks = fh.s_block -> block_size / 4;
-
-			if(fh.all_inodes[index].dib_ptr == -1){
-				fh.all_inodes[index].dib_ptr = get_free_data_block(fh);
-				fh.data_bitmap[fh.all_inodes[index].dib_ptr];
-			}
-
-			int blks2 = blks;
-			int d_address = 0;
-			ib_start = get_starting_offset(fh) +  fh.all_inodes[index].dib_ptr * fh.s_block -> block_size;
-
-			for(int k = 0; blks2 > 0 && k < i_blocks; k++, blks2--){
-				d_address = get_free_data_block(fh);
-				fh.data_bitmap[d_address];
-				d_address *= fh.s_block -> block_size;
-				write_disk(fh, ib_start + k * 4, 4, (void *)(&d_address), 'I');		
-			}
-
-			if(blks2 > 0){
-				//this means double indirect
-			}
-		}
-	}
-	*/
 }
 
 void add_block(int c_blk, int index, int new_block, file_data_holder & fh){	
 
-	fh.all_inodes[index].db_ptr[c_blk] = new_block;			
+	if(c_blk > 11){
+		if(fh.all_inodes[index].dib_ptr == -1){
+			fh.all_inodes[index].dib_ptr = get_free_data_block(fh);
+			fh.data_bitmap[free_dblk_ind] = 1;
+		}
+		add_in_blk(fh, index, c_blk, new_block);
+	} else {
+		fh.all_inodes[index].db_ptr[c_blk] = new_block;			
+	}
+}
+
+void add_in_blk(file_data_holder & fh, int index, in current_block, int dblk){
+	
+	int start = fh.all_inodes[index].dib_ptr * fh.s_block -> block_size + current_block * 4;
+	write_disk_int(fh, start, dblk);
+
 }
 
 void write_data(file_data_holder & fh, int index, message m){
@@ -191,38 +135,58 @@ void write_data(file_data_holder & fh, int index, message m){
 	if(m.bytes > 0){
 		write_file(fh, index, current_block, 0, m.bytes, m.letter);
 	}
-	
-	/*
-	int w_size = m.bytes;
-	int w_start = m.start;
-	int w_total = w_start +  w_size;
-	int cur_blk = (fh.s_block -> block_size) - (ms.start % fh.s_block -> block_size);
-	int g_blk = get_last_block(index);
-
-	//writing to last non_full direct block
-	if(w_size <= cur_blk){
-		write_block(fh, index, g_blk, w_start % fh.s_block -> block_size, w_size, m.letter);
-	} else {
-		write_block(fh, index, g_blk, w_start % fh.s_block -> block_size, cur_blk, m.letter);
-		w_start += cur_blk;
-		while(w_start < w_total){
-			//cur_blk = (fh.s_block -> block_size) - (w_start % fh.s_block -> block_size);	
-			if(w_total - w_start < fh.s_block -> block_size){
-				write_block(fh, index, get_last_block(index), w_start % (fh.s_block -> block_size), w_total - w_start, m.letter)
-			w_start += fh.s_block -> block_size;
-		}
-	}
-*/
 }
 
 void write_file(file_data_holder & fh, int current_file, int cur_block, int byte_start, int byte_end, char data){
 
-	int global_block = get_starting_offset(fh) +  fh.all_inodes[current_file].db_ptr[cur_block] * fh.s_block -> block_size; 
+	int global_block = 0; 
+	if(cur_block > 11){
+		global_block = get_starting_offset(fh) +  get_ib_blk(fh, index, cur_block - 12) * fh.s_block -> block_size; 
+	} else {
+		global_block = get_starting_offset(fh) +  fh.all_inodes[current_file].db_ptr[cur_block] * fh.s_block -> block_size; 
+	}
 	int start = global_block + byte_start;
 	int end = global_block + byte_end;
 	int offset = end - start;
 	write_disk_char(fh, start, offset, data);
 }
+
+int get_ib_blk(file_data_holder & fh, int index, int c_blk){
+		
+	int start = fh.all_inodes[index].dib_ptr + c_blk * 4;
+	read_disk_int(file_data_holder & fh, start)
+
+}
+
+void write_disk_int(file_data_holder & fh, int start, int data){
+
+	FILE * t_file;
+	t_file = fopen (fh.disk_name, "rb+");
+	std::cout << "offset " << offset << std::endl;
+
+	if (t_file != NULL){
+		fseek(t_file, start, SEEK_SET);
+		fprintf(t_file, "%d", data);
+	}
+	fclose(t_file);
+}
+
+void read_disk_int(file_data_holder & fh, int start){
+
+	FILE * t_file;
+	t_file = fopen (fh.disk_name, "rb+");
+	int val = 0;
+	std::cout << "offset " << offset << std::endl;
+
+	if (t_file != NULL){
+		fseek(t_file, start, SEEK_SET);
+		fscanf (t_file, "%d", &val);
+	}
+	fclose(t_file);
+	return val;
+}
+
+
 
 void write_disk_char(file_data_holder & fh, int start, int offset, char data){
 
@@ -693,24 +657,3 @@ void shutdown(file_data_holder & fh){
 	}
 	fclose (t_file);
 }
-
-/*int get_last_block(file_data_holder & fh, int index){
-	
-	int i = 0;
-	while(fh.all_inodes[index].db_ptr[i+1] > -1){
-		i++;
-	}
-	return i;
-}*/
-
-/*void write_block(file_data_holder & fh, int file_index, int blk_index, int start, int size, char c){
-
-	if(start + size == fh.s_block -> block_size){
-		fh.all_inodes[index].db_ptr[blk_index + 1] = 0;
-	}
-
-	int st = fh.all_inodes[index].db_ptr[blk_index] * fh.s_block -> block_size;
-	write_disk_char(fh, st + start, st + start + size, c);	
-}*/
-
-
