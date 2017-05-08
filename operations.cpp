@@ -239,11 +239,11 @@ void write_disk_char(file_data_holder & fh, int start, int offset, char data){
 
 	FILE * t_file;
 	t_file = fopen (fh.disk_name, "rb+");
-	//std::cout << "offset " << offset << std::endl;
 
 	if (t_file != NULL){
 		fseek(t_file, start, SEEK_SET);
 		for(int i = 0; i < offset; i++){
+			std::cout << "writing char to " << offset + i << std::endl;
 			fputc(data, t_file);
 		}
 	}
