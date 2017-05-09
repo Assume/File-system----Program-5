@@ -83,24 +83,29 @@ void append(file_data_holder & fh, int index, message m){
 	int current_block = fh.all_inodes[index].file_size / fh.s_block -> block_size;
 	int new_blocks = new_size / fh.s_block -> block_size;
 
+	std::cout << "current_blocks " << current_block << std::endl;
+	std::cout << "new_blocks " << new_blocks << std::endl;
+
 	int free_dblk_ind = 0;
 
 	if(fh.all_inodes[index].file_size == 0){
 		free_dblk_ind = get_free_data_block(fh);
 		add_block(current_block, index, free_dblk_ind, fh);
 		fh.data_bitmap[free_dblk_ind] = 1;
+		current_block++;
 	}
 
-	if(current_block < new_blocks){
+	while(current_block <= new_blocks){
 		free_dblk_ind = get_free_data_block(fh);
-		add_block(++current_block, index, free_dblk_ind, fh);
+		add_block(current_block, index, free_dblk_ind, fh);
 		fh.data_bitmap[free_dblk_ind] = 1;
+		current_block++;
 	}
 }
 
 void add_block(int c_blk, int index, int new_block, file_data_holder & fh){	
 
-	if(c_blk > (12 + fh.s_block->block_size / 4) - 1){
+	if(c_blk > (12 + 32 - 1)){//hardcoded -> replace 32 with (fh.s_block->block_size / 4)
 		if(fh.all_inodes[index].dib_ptr == -1){
 			fh.all_inodes[index].dib_ptr = get_free_data_block(fh);
 			fh.data_bitmap[fh.all_inodes[index].dib_ptr] = 1;
@@ -111,7 +116,7 @@ void add_block(int c_blk, int index, int new_block, file_data_holder & fh){
 			fh.all_inodes[index].ib_ptr = get_free_data_block(fh);
 			fh.data_bitmap[fh.all_inodes[index].ib_ptr] = 1;
 		}
-		add_id_blk(fh, index, c_blk, new_block);
+		add_id_blk(fh, index, c_blk - 12, new_block);
 	} else {
 		fh.all_inodes[index].db_ptr[c_blk] = new_block;			
 	}
@@ -129,7 +134,9 @@ void add_did_blk(file_data_holder & fh, int index, int current_block, int dblk){
 
 void add_id_blk(file_data_holder & fh, int index, int current_block, int dblk){
 	
-	int start = fh.all_inodes[index].ib_ptr * fh.s_block -> block_size + current_block * 4;
+	std::cout << "index: " << index << " cblk: " << current_block << std::endl;
+	int start = get_starting_offset(fh) + (fh.all_inodes[index].ib_ptr * fh.s_block->block_size)+ (current_block * 4);
+	std::cout << "indirect  block: writing " << dblk << " to byte " << start << std::endl;
 	write_disk_int(fh, start, dblk);
 
 }
@@ -202,8 +209,9 @@ int get_did_blk(file_data_holder & fh, int index, int c_blk){
 
 int get_id_blk(file_data_holder & fh, int index, int c_blk){
 		
-	std::cout << "c_blk" << c_blk << std::endl;
+	std::cout << "index: " << index << " cblk: " << c_blk << std::endl;
 	int start = get_starting_offset(fh) + (fh.all_inodes[index].ib_ptr * fh.s_block->block_size)+ (c_blk * 4);
+	std::cout << "indirect (cb: " << c_blk<< ") block: retrieving at byte " << start << std::endl;
 	return read_disk_int(fh, start);
 
 }
@@ -348,7 +356,7 @@ void read_disk_char(file_data_holder & fh, int start, int offset){
 		fseek(t_file, start, SEEK_SET);
 		for(int i = 0; i < offset; i++){
 			c = fgetc(t_file);
-			//std::cout << c << std::endl;
+			std::cout << c << std::endl;
 		}
 	}
 	fclose(t_file);
@@ -403,8 +411,7 @@ bool import(file_data_holder & fh, message ms){
 		return false;
 	}
 
-
-
+	std::cout << "ms:start " << ms.start << " ms. bytes " << ms.bytes << " filesize " << fh.all_inodes[index].file_size << std::endl;
 	if((ms.start + ms.bytes) > fh.all_inodes[index].file_size){
 		append(fh, index, ms);
 	}
@@ -449,11 +456,21 @@ void import_data(file_data_holder & fh, int index, message m){
 
 void import_file(file_data_holder & fh, int current_file, int cur_block, int byte_start, int byte_end, std::string iname, int ifile_off){
 
-	int global_block = get_starting_offset(fh) +  fh.all_inodes[current_file].db_ptr[cur_block] * fh.s_block -> block_size; 
+	int global_block = 0; 
+	if(cur_block > 43){
+		global_block = get_starting_offset(fh) +  get_did_blk(fh, current_file, cur_block - 44) * fh.s_block -> block_size; 
+	}
+	else if(cur_block > 11){
+		global_block = get_starting_offset(fh) +  get_id_blk(fh, current_file, cur_block - 12) * fh.s_block -> block_size; 
+	} else {
+		global_block = get_starting_offset(fh) +  fh.all_inodes[current_file].db_ptr[cur_block] * fh.s_block -> block_size; 
+	}
 	int start = global_block + byte_start;
 	int end = global_block + byte_end;
 	int offset = end - start;
+	std::cout << "global: "<< global_block << " start: " << start << " offset " << offset << std::endl;
 	import_disk_char(fh, start, offset, iname, ifile_off);
+
 }
 
 void import_disk_char(file_data_holder & fh, int start, int offset, std::string ifile, int ifile_off){

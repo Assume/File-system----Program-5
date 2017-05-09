@@ -1,2 +1,2 @@
 WRITE large_import T 1990 400
-CAT large_import
+READ large_import 1970 420
