@@ -83,8 +83,8 @@ void append(file_data_holder & fh, int index, message m){
 	int current_block = fh.all_inodes[index].file_size / fh.s_block -> block_size;
 	int new_blocks = new_size / fh.s_block -> block_size;
 
-	std::cout << "current_blocks " << current_block << std::endl;
-	std::cout << "new_blocks " << new_blocks << std::endl;
+	//std::cout << "current_blocks " << current_block << std::endl;
+	//std::cout << "new_blocks " << new_blocks << std::endl;
 
 	int free_dblk_ind = 0;
 
@@ -134,9 +134,9 @@ void add_did_blk(file_data_holder & fh, int index, int current_block, int dblk){
 
 void add_id_blk(file_data_holder & fh, int index, int current_block, int dblk){
 	
-	std::cout << "index: " << index << " cblk: " << current_block << std::endl;
+  //std::cout << "index: " << index << " cblk: " << current_block << std::endl;
 	int start = get_starting_offset(fh) + (fh.all_inodes[index].ib_ptr * fh.s_block->block_size)+ (current_block * 4);
-	std::cout << "indirect  block: writing " << dblk << " to byte " << start << std::endl;
+	//	std::cout << "indirect  block: writing " << dblk << " to byte " << start << std::endl;
 	write_disk_int(fh, start, dblk);
 
 }
@@ -245,7 +245,7 @@ int read_disk_int(file_data_holder & fh, int start){
 
 void write_disk_char(file_data_holder & fh, int start, int offset, char data){
 
-	std::cout << "write_disk_char() " << start << std::endl;
+  //std::cout << "write_disk_char() " << start << std::endl;
 	FILE * t_file;
 	t_file = fopen (fh.disk_name, "rb+");
 
@@ -340,7 +340,7 @@ void read_disk_char(file_data_holder & fh, int start, int offset){
 
 	FILE * t_file;
 	t_file = fopen (fh.disk_name, "rb+");
-	std::cout << "read_disk_char: " << start << std::endl;
+	//std::cout << "read_disk_char: " << start << std::endl;
 	char c;
 
 	if (t_file != NULL){
@@ -402,7 +402,7 @@ bool import(file_data_holder & fh, message ms){
 		return false;
 	}
 
-	std::cout << "ms:start " << ms.start << " ms. bytes " << ms.bytes << " filesize " << fh.all_inodes[index].file_size << std::endl;
+	//std::cout << "ms:start " << ms.start << " ms. bytes " << ms.bytes << " filesize " << fh.all_inodes[index].file_size << std::endl;
 	if((ms.start + ms.bytes) > fh.all_inodes[index].file_size){
 		append(fh, index, ms);
 	}
@@ -459,7 +459,7 @@ void import_file(file_data_holder & fh, int current_file, int cur_block, int byt
 	int start = global_block + byte_start;
 	int end = global_block + byte_end;
 	int offset = end - start;
-	std::cout << "global: "<< global_block << " start: " << start << " offset " << offset << std::endl;
+	//std::cout << "global: "<< global_block << " start: " << start << " offset " << offset << std::endl;
 	import_disk_char(fh, start, offset, iname, ifile_off);
 
 }
@@ -655,7 +655,7 @@ bool create(file_data_holder &fh, message mes){
 
 	int index = get_free_inode(fh);
 	if(index == -1){
-		perror("no inode available");
+	  //perror("no inode available");
 		return false;
 	}
 

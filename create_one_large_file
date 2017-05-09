@@ -1,0 +1,3 @@
+CREATE super_large_file
+WRITE super_large_file a 0 70000
+CAT super_large_file
