@@ -193,7 +193,6 @@ void write_file(file_data_holder & fh, int current_file, int cur_block, int byte
 	int start = global_block + byte_start;
 	int end = global_block + byte_end;
 	int offset = end - start;
-	std::cout << "global: "<< global_block << " start: " << start << " offset " << offset << std::endl;
 	write_disk_char(fh, start, offset, data);
 }
 
@@ -209,9 +208,7 @@ int get_did_blk(file_data_holder & fh, int index, int c_blk){
 
 int get_id_blk(file_data_holder & fh, int index, int c_blk){
 		
-	std::cout << "index: " << index << " cblk: " << c_blk << std::endl;
 	int start = get_starting_offset(fh) + (fh.all_inodes[index].ib_ptr * fh.s_block->block_size)+ (c_blk * 4);
-	std::cout << "indirect (cb: " << c_blk<< ") block: retrieving at byte " << start << std::endl;
 	return read_disk_int(fh, start);
 
 }
@@ -294,8 +291,6 @@ void read_data(file_data_holder & fh, int index, message m){
 		fh.all_inodes[index].file_size += m.start + m.bytes - fh.all_inodes[index].file_size;
 	}
 
-	std::cout << "m.start: " << m.start << " m.bytes: " << m.bytes << std::endl;
-
 	//read to first data block
 	if(m.start % fh.s_block -> block_size != 0){
 		if(m.start <= (current_block + 1) * fh.s_block -> block_size){
@@ -326,8 +321,6 @@ void read_data(file_data_holder & fh, int index, message m){
 
 void read_file(file_data_holder & fh, int current_file, int cur_block, int byte_start, int byte_end){
 	
-	std::cout << "b_end: " << byte_end << " byte start: " << byte_start << " currentblock: " << cur_block << std::endl;
-	
 	int global_block = 0; 
 	if(cur_block > 43){
 		global_block = get_starting_offset(fh) +  get_did_blk(fh, current_file, cur_block - 44) * fh.s_block -> block_size; 
@@ -335,12 +328,10 @@ void read_file(file_data_holder & fh, int current_file, int cur_block, int byte_
 		global_block = get_starting_offset(fh) +  get_id_blk(fh, current_file, cur_block - 12) * fh.s_block -> block_size; 
 	} else {
 		global_block = get_starting_offset(fh) +  fh.all_inodes[current_file].db_ptr[cur_block] * fh.s_block -> block_size; 
-		std::cout << " < 11 " << global_block << std::endl;
 	}
 	int start = global_block + byte_start;
 	int end = global_block + byte_end;
 	int offset = end - start;
-	std::cout << "read_file: "<< start << " : " << offset << std::endl;
 	read_disk_char(fh, start, offset);
 
 }
