@@ -23,8 +23,6 @@
 
 #define SIZE 4096
 
-
-
 pthread_mutex_t buf_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t buf_wait = PTHREAD_COND_INITIALIZER;
 
@@ -35,7 +33,6 @@ bool is_buffer_full();
 std::queue<message> queue;
 
 int num_done = 0;
-
 
 void * disk_op(void * data){
 	std::string * str = static_cast<std::string*>(data);
@@ -48,9 +45,7 @@ void * disk_op(void * data){
 		while (!p_file.eof()){
 			getline(p_file, line);
 			message ms;
-			std::cout << line << std::endl;
 			std::vector<std::string> vec = split_string_by_space(line);
-			std::cout << vec[0] << std::endl;
 			std::string input = vec[0];
 			ms.cmd = input;
 			if(input.compare("CREATE") == 0){

@@ -149,9 +149,9 @@ void write_data(file_data_holder & fh, int index, message m){
 		if(m.start <= (current_block + 1) * fh.s_block -> block_size){
 			blk_st = m.start % fh.s_block -> block_size;
 			if(m.start + m.bytes > (current_block + 1)* fh.s_block -> block_size){
-				blk_end = (current_block + 1) * fh.s_block -> block_size;
+				blk_end = fh.s_block -> block_size;
 			} else {
-				blk_end = m.start + m.bytes;
+				blk_end = (m.start + m.bytes) % fh.s_block -> block_size;
 			}
 			write_file(fh, index, current_block, blk_st, blk_end, m.letter);
 		}
@@ -165,6 +165,7 @@ void write_data(file_data_holder & fh, int index, message m){
 		current_block++;
 		m.bytes -= fh.s_block -> block_size;
 	}
+
 	//write left over data to last block
 	if(m.bytes > 0){
 		write_file(fh, index, current_block, 0, m.bytes, m.letter);
@@ -185,6 +186,7 @@ void write_file(file_data_holder & fh, int current_file, int cur_block, int byte
 	int start = global_block + byte_start;
 	int end = global_block + byte_end;
 	int offset = end - start;
+	std::cout << "global: "<< global_block << " start: " << start << " offset " << offset << std::endl;
 	write_disk_char(fh, start, offset, data);
 }
 
@@ -200,7 +202,8 @@ int get_did_blk(file_data_holder & fh, int index, int c_blk){
 
 int get_id_blk(file_data_holder & fh, int index, int c_blk){
 		
-	int start = fh.all_inodes[index].ib_ptr + c_blk * 4;
+	std::cout << "c_blk" << c_blk << std::endl;
+	int start = get_starting_offset(fh) + (fh.all_inodes[index].ib_ptr * fh.s_block->block_size)+ (c_blk * 4);
 	return read_disk_int(fh, start);
 
 }
@@ -237,14 +240,15 @@ int read_disk_int(file_data_holder & fh, int start){
 
 void write_disk_char(file_data_holder & fh, int start, int offset, char data){
 
+	std::cout << "write_disk_char() " << start << std::endl;
 	FILE * t_file;
 	t_file = fopen (fh.disk_name, "rb+");
 
 	if (t_file != NULL){
 		fseek(t_file, start, SEEK_SET);
 		for(int i = 0; i < offset; i++){
-			//std::cout << "writing char to " << offset + i << std::endl;
 			fputc(data, t_file);
+			//std::cout << "writing" << std::endl;
 		}
 	}
 	fclose(t_file);
@@ -278,12 +282,21 @@ void read_data(file_data_holder & fh, int index, message m){
 	int current_block = m.start / fh.s_block -> block_size;
 	int blk_st = 0;
 	int blk_end = 0;
+	if(m.start + m.bytes > fh.all_inodes[index].file_size){
+		fh.all_inodes[index].file_size += m.start + m.bytes - fh.all_inodes[index].file_size;
+	}
+
+	std::cout << "m.start: " << m.start << " m.bytes: " << m.bytes << std::endl;
 
 	//read to first data block
 	if(m.start % fh.s_block -> block_size != 0){
-		if(m.start + m.bytes <= (current_block + 1) * fh.s_block -> block_size){
+		if(m.start <= (current_block + 1) * fh.s_block -> block_size){
 			blk_st = m.start % fh.s_block -> block_size;
-			blk_end = m.start + m.bytes - (current_block * fh.s_block -> block_size);
+			if(m.start + m.bytes > (current_block + 1)* fh.s_block -> block_size){
+				blk_end = fh.s_block -> block_size;
+			} else {
+				blk_end = (m.start + m.bytes) % (fh.s_block -> block_size);
+			}
 			read_file(fh, index, current_block, blk_st, blk_end);
 		}
 		current_block++;
@@ -296,7 +309,6 @@ void read_data(file_data_holder & fh, int index, message m){
 		current_block++;
 		m.bytes -= fh.s_block -> block_size;
 	}
-
 	//read left over data to last block
 	if(m.bytes > 0){
 		read_file(fh, index, current_block, 0, m.bytes);
@@ -305,25 +317,38 @@ void read_data(file_data_holder & fh, int index, message m){
 }
 
 void read_file(file_data_holder & fh, int current_file, int cur_block, int byte_start, int byte_end){
-
-	int global_block = get_starting_offset(fh) +  fh.all_inodes[current_file].db_ptr[cur_block] * fh.s_block -> block_size; 
+	
+	std::cout << "b_end: " << byte_end << " byte start: " << byte_start << " currentblock: " << cur_block << std::endl;
+	
+	int global_block = 0; 
+	if(cur_block > 43){
+		global_block = get_starting_offset(fh) +  get_did_blk(fh, current_file, cur_block - 44) * fh.s_block -> block_size; 
+	} else if(cur_block > 11){
+		global_block = get_starting_offset(fh) +  get_id_blk(fh, current_file, cur_block - 12) * fh.s_block -> block_size; 
+	} else {
+		global_block = get_starting_offset(fh) +  fh.all_inodes[current_file].db_ptr[cur_block] * fh.s_block -> block_size; 
+		std::cout << " < 11 " << global_block << std::endl;
+	}
 	int start = global_block + byte_start;
 	int end = global_block + byte_end;
 	int offset = end - start;
+	std::cout << "read_file: "<< start << " : " << offset << std::endl;
 	read_disk_char(fh, start, offset);
+
 }
 
 void read_disk_char(file_data_holder & fh, int start, int offset){
 
 	FILE * t_file;
 	t_file = fopen (fh.disk_name, "rb+");
+	std::cout << "read_disk_char: " << start << std::endl;
 	char c;
 
 	if (t_file != NULL){
 		fseek(t_file, start, SEEK_SET);
 		for(int i = 0; i < offset; i++){
 			c = fgetc(t_file);
-			std::cout << c << std::endl;
+			//std::cout << c << std::endl;
 		}
 	}
 	fclose(t_file);
@@ -342,12 +367,11 @@ bool import(file_data_holder & fh, message ms){
 
 	if(index == -1){
 		create(fh, ms);
-		int index = get_inode_for_file_name(fh, ms.fname);
+		index = get_inode_for_file_name(fh, ms.fname);
 	} else {
 		delete_file(fh, ms);
-		ms.bytes = sz;
 		create(fh, ms);
-		int index = get_inode_for_file_name(fh, ms.fname);
+		index = get_inode_for_file_name(fh, ms.fname);
 	}
 
 	if(ms.start > fh.all_inodes[index].file_size){
